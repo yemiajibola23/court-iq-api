@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Env & secrets
+.env
+.env.*
+*.pem
+*.key
+*service-account*.json
+
+# Logs & temp
+*.log
+*.tmp
+tmp/
+.cache/
+
+# Docker
+*.pid
+
+# Firebase emulators (local data)
+firebase-data/
+.emulator-data/
+
+# Build artifacts
+dist/
+build/
