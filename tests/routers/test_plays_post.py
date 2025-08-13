@@ -41,10 +41,20 @@ def test_create_play_422_empty_title():
         for err in data["detail"]
     )
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_422_http_scheme_rejected():
-    """video_path uses http:// → 422.video_path"""
-    pass
+def test_create_play_422_ftp_scheme_rejected():
+    """video_path uses ftp:// → 422.video_path"""
+    payload = {"title": "Valid", "video_path": "ftp://server/clip.mp4"}
+    res = client.post("/v1/plays", json=payload)
+    
+    assert res.status_code == 422
+    
+    data = res.json()
+    assert "detail" in data and isinstance(data["detail"], list)
+    assert any(
+        ("title" in err.get("loc", [])) or
+        (isinstance(err.get("loc"), list) and "video_path" in err["loc"])
+        for err in data["detail"]
+    )
 
 @pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
 def test_create_play_422_unsupported_extension_avi():
