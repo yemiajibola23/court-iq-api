@@ -1,9 +1,10 @@
 import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+import uuid
 
-# NOTE: These are scaffolds for Day 5. We'll wire real client + app in Day 6.
-# Keep them as intent-capturing placeholders so CI doesn't fail.
+client = TestClient(app)
 
-@pytest.mark.skip(reason="scaffold: implement when POST /v1/plays exists (Day 6)")
 def test_create_play_ok_https_mp4_returns_201_and_location_header():
     """
     Happy path:
@@ -13,7 +14,15 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header():
       - 201 Created
       - 'Location' header set to /v1/plays/{id}
     """
-    pass
+    payload = {"title": "Drop vs. Spain PnR", "video_path":"https://example.com/clip.mp4"}
+    res = client.post("/v1/plays", json=payload)
+    
+    assert res.status_code == 200
+    
+    data = res.json()
+    assert "playId" in data
+    # Validate UUID-ish value (FastAPI serializes UUID -> string)
+    uuid.UUID(data["playId"])
 
 @pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
 def test_create_play_422_empty_title():
