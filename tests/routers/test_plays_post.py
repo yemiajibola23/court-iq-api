@@ -23,22 +23,12 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     # Validate UUID-ish value (FastAPI serializes UUID -> string)
     uuid.UUID(data["playId"])
 
-def test_create_play_422_empty_title(client):
+def test_create_play_422_empty_title(client, assert_422_field):
     """Empty/whitespace-only title → 422.title"""
     payload = {"title": "  ", "video_path": "https://example.com/clip.mp4"}
     res = client.post("/v1/plays", json=payload)
     
-    assert res.status_code == 422
-    
-    data = res.json()
-    assert "detail" in data and isinstance(data["detail"], list)
-    
-    # be flexible about FastAPI/Pydantic error shape but ensure it references 'title'
-    assert any(
-        ("title" in err.get("loc", [])) or
-        (isinstance(err.get("loc"), list) and "title" in err["loc"])
-        for err in data["detail"]
-    )
+    assert_422_field(res, "title")
 
 def test_create_play_422_ftp_scheme_rejected(client):
     """video_path uses ftp:// → 422.video_path"""
