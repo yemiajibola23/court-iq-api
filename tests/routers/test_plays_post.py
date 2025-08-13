@@ -20,7 +20,17 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     data = res.json()
     assert "playId" in data
     # Validate UUID-ish value (FastAPI serializes UUID -> string)
-    uuid.UUID(data["playId"])
+    uuid_val = data["playId"]
+    uuid.UUID(uuid_val)
+    
+    # Location header
+    assert "Location" in res.headers
+    location = res.headers["Location"]
+    assert location.startswith("/v1/plays/")
+
+    # The id in Location should equal the JSON playId
+    loc_id = location.rsplit("/", 1)[-1]
+    assert loc_id == uuid_val
 
 def test_create_play_422_empty_title(client, assert_422_field):
     """Empty/whitespace-only title → 422.title"""
@@ -68,8 +78,12 @@ def test_create_play_trims_inputs_before_validation(client):
                }
     res = client.post("/v1/plays", json=payload)
     assert res.status_code == 201
+    location = res.headers["Location"]
+    assert location.startswith("/v1/plays/")
     
     data = res.json()
     assert "playId" in data
     
-    uuid.UUID(data["playId"])    
+    loc_id = location.rsplit("/", 1)[-1]
+    assert data["playId"] == loc_id
+ 
