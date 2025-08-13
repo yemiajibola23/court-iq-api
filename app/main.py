@@ -4,10 +4,6 @@ import uuid
 app = FastAPI()
 api = APIRouter(prefix="/v1")
 
-@app.get("/health")
-def health():
-    return {"ok": True}
-
 @api.post("/plays")
 def create_play(payload: dict):
     # TODO: - Validate with pydantic
