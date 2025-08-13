@@ -71,7 +71,15 @@ def test_create_play_ok_relative_under_media_root_with_override():
     """relative path under MEDIA_ROOT accepted when override is true → 201 + Location"""
     pass
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
 def test_create_play_trims_inputs_before_validation():
     """Leading/trailing whitespace is trimmed before rules apply."""
-    pass
+    payload = {"title": "  Spain   PnR  ", 
+               "video_path": "https://example.com/clip.mp4  ",
+               }
+    res = client.post("/v1/plays", json=payload)
+    assert res.status_code == 200
+    
+    data = res.json()
+    assert "playId" in data
+    
+    uuid.UUID(data["playId"])    
