@@ -15,7 +15,7 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     payload = {"title": "Drop vs. Spain PnR", "video_path":"https://example.com/clip.mp4"}
     res = client.post("/v1/plays", json=payload)
     
-    assert res.status_code == 200
+    assert res.status_code == 201
     
     data = res.json()
     assert "playId" in data
@@ -67,7 +67,7 @@ def test_create_play_trims_inputs_before_validation(client):
                "video_path": "https://example.com/clip.mp4  ",
                }
     res = client.post("/v1/plays", json=payload)
-    assert res.status_code == 200
+    assert res.status_code == 201
     
     data = res.json()
     assert "playId" in data
