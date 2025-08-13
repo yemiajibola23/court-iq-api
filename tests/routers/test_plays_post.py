@@ -24,10 +24,22 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header():
     # Validate UUID-ish value (FastAPI serializes UUID -> string)
     uuid.UUID(data["playId"])
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
 def test_create_play_422_empty_title():
     """Empty/whitespace-only title → 422.title"""
-    pass
+    payload = {"title": "  ", "video_path": "https://example.com/clip.mp4"}
+    res = client.post("/v1/plays", json=payload)
+    
+    assert res.status_code == 422
+    
+    data = res.json()
+    assert "detail" in data and isinstance(data["detail"], list)
+    
+    # be flexible about FastAPI/Pydantic error shape but ensure it references 'title'
+    assert any(
+        ("title" in err.get("loc", [])) or
+        (isinstance(err.get("loc"), list) and "title" in err["loc"])
+        for err in data["detail"]
+    )
 
 @pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
 def test_create_play_422_http_scheme_rejected():
