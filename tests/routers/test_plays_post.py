@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from app.main import app
 import uuid
 
-
 def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     """
     Happy path:
