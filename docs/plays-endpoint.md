@@ -95,3 +95,11 @@ Dev-override example (when flag is off):
 - `video_path` with unsupported extension `.avi` → `422.video_path`.
 - Dev override off: `file://...` and `videos/clip.mp4` → `422.video_path`.
 - Dev override on:  same inputs now valid.
+
+## Validation Checklist (Day 5)
+- [ ] Sanitize: trim `title`, `video_path`
+- [ ] title: non-empty, ≤ 100 chars
+- [ ] video_path (default): valid URL, scheme https, ext in {mp4,mov,m4v,webm}, len ≤ 2048
+- [ ] Dev override: allow `file://` and relative under `MEDIA_ROOT` (both with allowed ext)
+- [ ] 422 error format: per-field arrays
+- [ ] Happy path: 201 Created + Location: `/v1/plays/{id}`
