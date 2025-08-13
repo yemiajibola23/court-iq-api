@@ -97,7 +97,7 @@ Dev-override example (when flag is off):
 - Dev override on:  same inputs now valid.
 
 ## Validation Checklist (Day 5)
-- [ ] Sanitize: trim `title`, `video_path`
+- [x] Sanitize: trim `title`, `video_path`
 - [ ] title: non-empty, ≤ 100 chars
 - [ ] video_path (default): valid URL, scheme https, ext in {mp4,mov,m4v,webm}, len ≤ 2048
 - [ ] Dev override: allow `file://` and relative under `MEDIA_ROOT` (both with allowed ext)
