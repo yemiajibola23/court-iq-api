@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Response, status, HTTPException
 from uuid import uuid4
 
 from app.schemas.play import PlayCreateRequest, PlayCreateResponse
@@ -19,3 +19,7 @@ def create_play(payload: PlayCreateRequest, response: Response) -> PlayCreateRes
     
     response.headers["Location"] = f'/v1/plays/{play_id}'
     return PlayCreateResponse(playId=play_id)
+
+@router.get("/{id}")
+async def get_play(id: str):
+    raise HTTPException(status_code=404, detail="Play not found")
