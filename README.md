@@ -87,7 +87,7 @@ Create a new play.
 - `title`: required, non-empty (whitespace trimmed, 1–120 chars).
 - `video_path`: required; must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...).
 
-**Resposnse**
+**Response**
 - 201 Created
 - Headers: `Location /v1/plays/{id}`
 - Body:
@@ -114,6 +114,29 @@ curl -i -X POST http://127.0.0.1:8000/v1/plays \
 **Validation error (422)**
 ```bash
 http POST :8000/v1/plays title="  " video_path="https://example.com/clip.mp4"
+```
+
+### GET /v1/plays/{id}
+
+Returns a Play DTO.
+
+**Response 200**
+```json
+{
+  "id": "b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e",
+  "title": "Spain PnR",
+  "video_path": "https://example.com/clip.mp4"
+}
+```
+
+**Response 404**
+```json
+{ "detail": "Play not found" }
+```
+
+HTTPie
+```bash
+http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
 ```
 
 

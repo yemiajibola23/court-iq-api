@@ -5,6 +5,8 @@ from uuid import UUID
 from urllib.parse import urlparse
 import re
 
+# TECH_DEBT: TD4, TD9, TD12  — tighten video_path rules (https only, len≤2048, ext in set), per-field 422 arrays, case-insensitive ext check without mutating URL casing.
+# TECH_DEBT: TD11            — when flags disallow local paths, return specific 422 message per spec.
 
 # Acceptable non-URL path shapes
 RE_UNIX_ABS = re.compile(r"^/[^*?\"<>|]+")
@@ -44,3 +46,7 @@ class PlayCreateRequest(BaseModel):
 class PlayCreateResponse(BaseModel):
     playId: UUID   
             
+class PlayRead(BaseModel):
+    id: str
+    title: str
+    video_path: str

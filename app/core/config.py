@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 
+# TECH_DEBT: TD5, TD10, TD11 — wire ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT; secure path resolution (no traversal); precise 422 messages when override is off.
+
 # Load .env if present (no-op in prod where env vars are provided by the platform)
 load_dotenv()
 
