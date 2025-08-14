@@ -70,18 +70,53 @@ This project targets **Python 3.12** because `pydantic-core`’s Rust binding (P
   ```
   3.12.5
   ```
+## API
 
-  I recommend **committing** this file so everyone uses a compatible version.
+### POST `/v1/plays`
 
-- If you prefer not to enforce a version, add `.python-version` to `.gitignore`.
+Create a new play.
 
-## Next steps (Slice 1 → 2)
+**Request body**
+```json
+{
+  "title": "Spain PnR vs Drop",
+  "video_path": "https://example.com/clip.mp4"
+}
+```
+**Validation**
+- `title`: required, non-empty (whitespace trimmed, 1–120 chars).
+- `video_path`: required; must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...).
 
-- Add Pydantic models (`PlayDoc`, `CreatePlayRequest`).
-- Wire **Firestore (emulator)**: write `plays/{id}` on create.
-- Add a tiny background worker (thread) that flips `status: processing → complete`.
-- Expose `GET /v1/plays/{id}` to fetch the doc/status.
-- (Slice 2) Add ffmpeg frame extraction and save thumbnails to Storage (emulator).
+**Resposnse**
+- 201 Created
+- Headers: `Location /v1/plays/{id}`
+- Body:
+```json
+{
+  "playId": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71"
+}
+```
+**Examples**
+HTTPie
+```bash
+http POST :8000/v1/plays title="Spain PnR vs Drop" \
+  video_path="https://example.com/clip.mp4" -v
+```
+
+**curl**
+```bash
+curl -i -X POST http://127.0.0.1:8000/v1/plays \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Spain PnR vs Drop","video_path":"https://example.com/clip.mp4"}'
+
+```
+
+**Validation error (422)**
+```bash
+http POST :8000/v1/plays title="  " video_path="https://example.com/clip.mp4"
+```
+
+
 
 ## Contributing
 

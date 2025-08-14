@@ -1,13 +1,7 @@
 from fastapi import FastAPI, APIRouter
-import uuid
-
+from app.routers.health import router as health_router
+from app.routers.plays import router as plays_router
 app = FastAPI()
-api = APIRouter(prefix="/v1")
 
-@api.post("/plays")
-def create_play(payload: dict):
-    # TODO: - Validate with pydantic
-    _ = payload.get("title"), payload.get("video_path")
-    return {"playId": str(uuid.uuid4())}
-
-app.include_router(api)
+app.include_router(health_router)
+app.include_router(plays_router)

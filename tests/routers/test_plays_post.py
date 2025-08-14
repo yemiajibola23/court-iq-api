@@ -1,10 +1,9 @@
 import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+import uuid
 
-# NOTE: These are scaffolds for Day 5. We'll wire real client + app in Day 6.
-# Keep them as intent-capturing placeholders so CI doesn't fail.
-
-@pytest.mark.skip(reason="scaffold: implement when POST /v1/plays exists (Day 6)")
-def test_create_play_ok_https_mp4_returns_201_and_location_header():
+def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     """
     Happy path:
       - title: non-empty
@@ -13,17 +12,53 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header():
       - 201 Created
       - 'Location' header set to /v1/plays/{id}
     """
-    pass
+    payload = {"title": "Drop vs. Spain PnR", "video_path":"https://example.com/clip.mp4"}
+    res = client.post("/v1/plays", json=payload)
+    
+    assert res.status_code == 201
+    
+    data = res.json()
+    assert "playId" in data
+    # Validate UUID-ish value (FastAPI serializes UUID -> string)
+    uuid_val = data["playId"]
+    uuid.UUID(uuid_val)
+    
+    # Location header
+    assert "Location" in res.headers
+    location = res.headers["Location"]
+    assert location.startswith("/v1/plays/")
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_422_empty_title():
+    # The id in Location should equal the JSON playId
+    loc_id = location.rsplit("/", 1)[-1]
+    assert loc_id == uuid_val
+
+def test_create_play_422_empty_title(client, assert_422_field):
     """Empty/whitespace-only title → 422.title"""
-    pass
+    payload = {"title": "  ", "video_path": "https://example.com/clip.mp4"}
+    res = client.post("/v1/plays", json=payload)
+    
+    assert_422_field(res, "title")
+    
+def test_create_play_422_missing_title(client, assert_422_field):
+    """Missing 'title' field → 422.title"""
+    payload = {"video_path": "https://example.com/clip.mp4"}  # title omitted
+    res = client.post("/v1/plays", json=payload)
+   
+    assert_422_field(res, "title")
+    
+def test_create_play_422_missing_video_path(client, assert_422_field):
+    """Missing 'video_path' field → 422.video_path"""
+    payload = {"title": "Drop vs. Spain PnR"}  # video_path omitted
+    res = client.post("/v1/plays", json=payload)
+   
+    assert_422_field(res, "video_path")
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_422_http_scheme_rejected():
-    """video_path uses http:// → 422.video_path"""
-    pass
+def test_create_play_422_ftp_scheme_rejected(client, assert_422_field):
+    """video_path uses ftp:// → 422.video_path"""
+    payload = {"title": "Valid", "video_path": "ftp://server/clip.mp4"}
+    res = client.post("/v1/plays", json=payload)
+    
+    assert_422_field(res, "video_path")
 
 @pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
 def test_create_play_422_unsupported_extension_avi():
@@ -50,7 +85,19 @@ def test_create_play_ok_relative_under_media_root_with_override():
     """relative path under MEDIA_ROOT accepted when override is true → 201 + Location"""
     pass
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_trims_inputs_before_validation():
+def test_create_play_trims_inputs_before_validation(client):
     """Leading/trailing whitespace is trimmed before rules apply."""
-    pass
+    payload = {"title": "  Spain   PnR  ", 
+               "video_path": "https://example.com/clip.mp4  ",
+               }
+    res = client.post("/v1/plays", json=payload)
+    assert res.status_code == 201
+    location = res.headers["Location"]
+    assert location.startswith("/v1/plays/")
+    
+    data = res.json()
+    assert "playId" in data
+    
+    loc_id = location.rsplit("/", 1)[-1]
+    assert data["playId"] == loc_id
+ 
