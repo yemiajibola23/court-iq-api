@@ -1,7 +1,7 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 import uuid
+
+# TECH_DEBT: TD9 — assert per-field 422 arrays for all validation failures.
 
 def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     """

@@ -1,3 +1,7 @@
+# TECH_DEBT: TD7 — add malformed UUID tests for GET /v1/plays/{id}.
+# TECH_DEBT: TD8 — add fixture to reset in-memory store between tests.
+
+
 def test_get_play_returns_404_when_id_doesnt_exist(client):
     fake_id="00000000-0000-0000-0000-000000000000"
     

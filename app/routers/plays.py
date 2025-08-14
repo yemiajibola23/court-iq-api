@@ -4,10 +4,10 @@ import uuid
 from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
 from app.repositories import plays_repo
 
+# TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
+# TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
+
 router = APIRouter(prefix="/v1/plays", tags=["plays"])
-
-# Temporary in-memory store for Day 6 (will be replaced with repo on Day 7+)
-
 
 @router.post("", response_model=PlayCreateResponse, status_code=status.HTTP_201_CREATED)
 def create_play(payload: PlayCreateRequest, response: Response) -> PlayCreateResponse:
