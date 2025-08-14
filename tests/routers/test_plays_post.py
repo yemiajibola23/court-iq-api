@@ -60,30 +60,20 @@ def test_create_play_422_ftp_scheme_rejected(client, assert_422_field):
     
     assert_422_field(res, "video_path")
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_422_unsupported_extension_avi():
-    """video_path ends with .avi → 422.video_path"""
-    pass
+@pytest.mark.skip(reason="planned Day 12: invalid types on upload")
+def test_create_play_422_unsupported_extension_avi(): ...
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_422_local_file_path_rejected_when_override_off():
-    """file:// path rejected when ALLOW_LOCAL_VIDEO_PATHS is false → 422.video_path"""
-    pass
+@pytest.mark.skip(reason="planned Day 11: local paths gated by ALLOW_LOCAL_VIDEO_PATHS=false")
+def test_create_play_422_local_file_path_rejected_when_override_off(): ...
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_422_relative_path_rejected_when_override_off():
-    """relative path rejected when ALLOW_LOCAL_VIDEO_PATHS is false → 422.video_path"""
-    pass
+@pytest.mark.skip(reason="planned Day 11: relative paths gated by ALLOW_LOCAL_VIDEO_PATHS=false")
+def test_create_play_422_relative_path_rejected_when_override_off(): ...
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_ok_file_scheme_allowed_with_override():
-    """file:// path accepted when ALLOW_LOCAL_VIDEO_PATHS is true → 201 + Location"""
-    pass
+@pytest.mark.skip(reason="planned Day 11/12: file:// allowed only when override true (+ type checks)")
+def test_create_play_ok_file_scheme_allowed_with_override(): ...
 
-@pytest.mark.skip(reason="scaffold: implement with validation on Day 6")
-def test_create_play_ok_relative_under_media_root_with_override():
-    """relative path under MEDIA_ROOT accepted when override is true → 201 + Location"""
-    pass
+@pytest.mark.skip(reason="planned Day 11: relative under MEDIA_ROOT allowed when override true")
+def test_create_play_ok_relative_under_media_root_with_override(): ...
 
 def test_create_play_trims_inputs_before_validation(client):
     """Leading/trailing whitespace is trimmed before rules apply."""
