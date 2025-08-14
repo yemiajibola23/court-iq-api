@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Response, status, HTTPException
 from uuid import uuid4
 
-from app.schemas.play import PlayCreateRequest, PlayCreateResponse
+from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
 
 router = APIRouter(prefix="/v1/plays", tags=["plays"])
 
@@ -21,5 +21,9 @@ def create_play(payload: PlayCreateRequest, response: Response) -> PlayCreateRes
     return PlayCreateResponse(playId=play_id)
 
 @router.get("/{id}")
-async def get_play(id: str):
-    raise HTTPException(status_code=404, detail="Play not found")
+def get_play(id: str):
+    play = _PLAYS.get(id)
+    if not play:
+        raise HTTPException(status_code=404, detail="Play not found")
+    
+    return PlayRead(**play)

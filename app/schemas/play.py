@@ -44,3 +44,7 @@ class PlayCreateRequest(BaseModel):
 class PlayCreateResponse(BaseModel):
     playId: UUID   
             
+class PlayRead(BaseModel):
+    id: str
+    title: str
+    video_path: str
