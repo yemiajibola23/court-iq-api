@@ -45,7 +45,13 @@ def test_create_play_422_missing_title(client, assert_422_field):
     res = client.post("/v1/plays", json=payload)
    
     assert_422_field(res, "title")
-
+    
+def test_create_play_422_missing_video_path(client, assert_422_field):
+    """Missing 'video_path' field → 422.video_path"""
+    payload = {"title": "Drop vs. Spain PnR"}  # video_path omitted
+    res = client.post("/v1/plays", json=payload)
+   
+    assert_422_field(res, "video_path")
 
 def test_create_play_422_ftp_scheme_rejected(client, assert_422_field):
     """video_path uses ftp:// → 422.video_path"""
