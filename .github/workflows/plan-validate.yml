@@ -1,0 +1,42 @@
+name: Plan & Structure Validation
+
+on:
+  pull_request:
+    branches: [main, develop, feat/**]
+    paths:
+      - "meta/**"
+      - "TECH_DEBT.md"
+      - "ROADMAP.md"
+      - "tools/**"
+      - ".github/**"
+  workflow_dispatch: {} # allow manual runs
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install validator deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install PyYAML>=6.0
+          fi
+
+      - name: Validate project structure
+        run: python tools/validate_structure.py
+
+      - name: Validate plan alignment
+        run: python tools/validate_plan.py
