@@ -68,8 +68,8 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] ✨ feat(api): add `GET /v1/plays?cursor=&limit=&title=` pagination + filter
 - [x] ✅ test(api): pagination (limit/cursor) and filtering by title prefix
 - [x] 🔨 refactor(repos): list method with stable sort + cursor
-- [ ] 🧹 chore: add test fixtures for multiple plays
-- [ ] 📝 docs: list endpoint usage examples
+- [X] 🧹 chore: add test fixtures for multiple plays
+- [x] 📝 docs: list endpoint usage examples
 
 ## Day 9 – Delete Play
 
