@@ -46,6 +46,6 @@ def delete_play(id: str):
     key = str(id)
     ok = plays_repo.delete_play(key)
     if not ok:
-        raise HTTPException(status_code=404)
+        raise HTTPException(status_code=404, detail="Play not found")
     
     return Response(status_code=204)

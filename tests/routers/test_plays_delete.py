@@ -94,3 +94,5 @@ def test_delete_unknown_id_returns_404(client):
     assert res.status_code  == 404
     
     # (optional) assert: response body is empty or matches error schema, if standardized
+    body = res.json()
+    assert "detail" in body and "Play not found" in body["detail"]
