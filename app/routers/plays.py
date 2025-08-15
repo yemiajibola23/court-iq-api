@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Response, status, HTTPException
+from fastapi import APIRouter, Response, status, HTTPException, Query
 import uuid
+from typing import Optional, List
 
 from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
 from app.repositories import plays_repo
@@ -23,3 +24,11 @@ def get_play(id: str):
         raise HTTPException(status_code=404, detail="Play not found")
     
     return PlayRead(id=play.id, title=play.title, video_path=play.video_path)
+
+@router.get("")
+def list_plays(limit: int = Query(10, ge=1, le=100), cursor: Optional[str] = None, title: Optional [str] = None):
+    items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
+    
+    dtos: List[PlayRead] = [PlayRead(id=p.id, title=p.title, video_path=p.video_path) for p in items]
+    
+    return {"data": dtos, "nextCursor": next_cursor}
