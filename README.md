@@ -139,6 +139,58 @@ HTTPie
 http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
 ```
 
+## GET `/v1/plays` — List Plays (cursor pagination + title prefix filter)
+
+### Query Params
+- `limit` *(int, 1–100, default 10)* — max items per page.
+- `cursor` *(string, optional)* — the **last returned `id`** from the previous page. Results start **after** this id within the filtered view.
+- `title` *(string, optional)* — case-insensitive, trimmed **prefix** filter applied to `title`. Filtering happens **before** pagination.
+
+### Response
+```json
+{
+  "data": [
+    { "id": "f7b3…", "title": "Alpha Cut", "video_path": "https://…" }
+  ],
+  "nextCursor": "3c9e…"  // null when no more results
+}
+```
+
+### Examples
+**First Page**
+```bash
+curl -s 'http://localhost:8000/v1/plays?limit=2'
+```
+→
+```json
+{
+  "data": [
+    {"id":"…","title":"Alpha Cut","video_path":"…"},
+    {"id":"…","title":"Alpha Spain","video_path":"…"}
+  ],
+  "nextCursor":"<id-of-Alpha-Spain>"
+}
+
+```
+
+**Next Page**
+```bash
+curl -s 'http://localhost:8000/v1/plays?limit=2&cursor=<id-of-Alpha-Spain>'
+```
+
+**Filter by title prefix (case-insensitive)**
+```bash
+curl -s 'http://localhost:8000/v1/plays?limit=10&title=  alpha  '
+```
+
+**Invalid Cursor**
+```bash
+curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
+# HTTP/1.1 400 Bad Request
+# {"detail":"Invalid cursor"}
+```
+
+
 
 
 ## Contributing
