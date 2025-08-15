@@ -13,14 +13,14 @@ router = APIRouter(prefix="/v1/plays", tags=["plays"])
 
 @router.post("/", response_model=PlayCreateResponse, status_code=status.HTTP_201_CREATED)
 def create_play(payload: PlayCreateRequest, response: Response) -> PlayCreateResponse:
-    play = plays_repo.create(title=payload.title, video_path=payload.video_path)
+    play = plays_repo.create_play(title=payload.title, video_path=payload.video_path)
 
     response.headers["Location"] = f'/v1/plays/{play.id}'
     return PlayCreateResponse(playId=uuid.UUID(play.id))
 
 @router.get("/{id}")
 def get_play(id: str):
-    play = plays_repo.get(id)
+    play = plays_repo.get_play(id)
     if not play:
         raise HTTPException(status_code=404, detail="Play not found")
     
@@ -44,7 +44,7 @@ def list_plays(
 @router.delete("/{id}")
 def delete_play(id: str):
     key = str(id)
-    ok = plays_repo.delete(key)
+    ok = plays_repo.delete_play(key)
     if not ok:
         raise HTTPException(status_code=404)
     

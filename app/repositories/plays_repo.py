@@ -14,7 +14,10 @@ def _matches_prefix(title: str, prefix: Optional[str]) -> bool:
         return True
     return title.casefold().startswith(prefix.strip().casefold())
 
-def create(title: str, video_path: str) -> Play:
+def clear_store():
+    _STORE.clear()
+
+def create_play(title: str, video_path: str) -> Play:
     play_id = str(uuid4())
     
     play = Play(play_id, title, video_path)
@@ -23,12 +26,8 @@ def create(title: str, video_path: str) -> Play:
     
     return play
 
-def get(id: str) -> Optional[Play]:
+def get_play(id: str) -> Optional[Play]:
     return _STORE.get(id)
-
-def clear_store():
-    _STORE.clear()
-
 
 def list_plays(cursor: Optional[str], limit: int, title_prefix: Optional[str] = None) -> Tuple[List[Play], Optional[str]]:
     """Filter by title prefix, then paginate over stable insertion order.
@@ -64,7 +63,7 @@ def list_plays(cursor: Optional[str], limit: int, title_prefix: Optional[str] = 
     
     return items, next_cursor
 
-def delete(id: str) -> bool:
+def delete_play(id: str) -> bool:
     removed = _STORE.pop(id, None)
     
     return removed is not None
