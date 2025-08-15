@@ -22,7 +22,7 @@ project:
     - app/repositories/plays_repo.py
     - app/models/play.py
     - app/schemas/play.py
-    - ../../docs/ROADMAP.md
+    - ROADMAP.md
     # at least one list test file must exist under tests/routers
     - tests/routers/test_plays_list.py
     - .github/pull_request_template.md
