@@ -43,11 +43,7 @@ def list_plays(cursor: Optional[str], limit: int, title_prefix: Optional[str] = 
         try:
             start_idx = keys.index(cursor) + 1
         except ValueError:
-            # TODO: - choose a policy
-            # (a) treat as empty page, or
-            # (b) treat as beginning (start_idx = 0), or
-            # (c) raise 400 in the router layer.
-            start_idx = 0 # for now
+            raise ValueError("invalid_cursor")
     
     # 3) Slice the page
     end_idx = start_idx + lim

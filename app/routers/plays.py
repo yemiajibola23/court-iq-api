@@ -27,7 +27,10 @@ def get_play(id: str):
 
 @router.get("")
 def list_plays(limit: int = Query(10, ge=1, le=100), cursor: Optional[str] = None, title: Optional [str] = None):
-    items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
+    try:
+        items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid cursor")
     
     dtos: List[PlayRead] = [PlayRead(id=p.id, title=p.title, video_path=p.video_path) for p in items]
     

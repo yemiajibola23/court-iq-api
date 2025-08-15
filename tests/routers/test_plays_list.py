@@ -76,3 +76,53 @@ def test_list_plays_title_prefix_filter_with_pagination(client, seed_many_plays)
     assert [p["title"] for p in b2["data"]] == ["Alpha Spain"]
     # no more "Alpha..." items
     assert b2.get("nextCursor") in (None,)
+
+def test_list_plays_filter_no_matches_returns_empty_200(client, seed_many_plays):
+    seed_many_plays([
+        {"title": "Alpha Cut"},
+        {"title": "Bravo Ghost"},
+    ])
+    r = client.get("/v1/plays", params={"limit": 5, "title": "Zeta"})
+    b = r.json()
+    assert r.status_code == 200
+    assert b["data"] == []
+    assert b.get("nextCursor") in (None,)
+
+
+def test_list_plays_cursor_at_end_returns_empty_page(client, seed_many_plays):
+    created = seed_many_plays([
+        {"title": "A1"},
+        {"title": "A2"},
+        {"title": "A3"},
+    ])
+    # cursor = last id → empty page, nextCursor null
+    r = client.get("/v1/plays", params={"limit": 10, "cursor": created[-1]["id"]})
+    b = r.json()
+    assert r.status_code == 200
+    assert [p["title"] for p in b["data"]] == []
+    assert b.get("nextCursor") in (None,)
+
+
+def test_list_plays_bad_cursor_returns_400(client, seed_many_plays):
+    seed_many_plays([
+        {"title": "Alpha Cut"},
+        {"title": "Alpha Spain"},
+    ])
+    r = client.get("/v1/plays", params={"limit": 2, "cursor": "bogus-id"})
+    assert r.status_code == 400
+    body = r.json()
+    # FastAPI default error envelope uses "detail"
+    assert "detail" in body and "Invalid cursor" in body["detail"]
+
+
+def test_list_plays_bad_cursor_with_filter_returns_400(client, seed_many_plays):
+    created = seed_many_plays([
+        {"title": "Alpha Cut"},
+        {"title": "Bravo Ghost"},
+    ])
+    # Supply a real id that does NOT match the filter subset → invalid within the filtered view
+    wrong_subset_cursor = created[1]["id"]  # "Bravo Ghost"
+    r = client.get("/v1/plays", params={"limit": 2, "title": "Alpha", "cursor": wrong_subset_cursor})
+    assert r.status_code == 400
+    body = r.json()
+    assert "detail" in body and "Invalid cursor" in body["detail"]
