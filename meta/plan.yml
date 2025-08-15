@@ -1,0 +1,51 @@
+current_day: 8
+
+days:
+  - day: 8
+    branch: feat/api-list-plays
+    objective: "GET /v1/plays with pagination & title filter"
+    deliverables:
+      - "GET /v1/plays route"
+      - "list_plays(repo) filter-then-paginate"
+      - "Docs + examples for list"
+    tech_debt_resolve: [TD8, TD16, TD17]
+    tech_debt_add: [TD13, TD14, TD15, TD18]
+
+  - day: 9
+    branch: feat/api-validation-and-list-polish
+    objective: "Validation polish + list clamps"
+    deliverables:
+      - "POST /v1/plays video_path validation"
+      - "List default/clamp tests"
+      - "Optional hasMore boolean"
+    tech_debt_resolve: [TD2, TD15, TD18]
+    tech_debt_add: []
+
+  - day: 10
+    branch: feat/repo-di-and-unit-tests
+    objective: "Introduce PlayRepository + dependency override"
+    deliverables:
+      - "Repo interface + FastAPI dependency"
+      - "Repo unit tests (create/get/list)"
+    tech_debt_resolve: [TD13, TD3]
+    tech_debt_add: []
+
+  - day: 11
+    branch: feat/sqlite-migration-and-validation
+    objective: "SQLite migration + video_path validator hardening + 422 envelope"
+    deliverables:
+      - "SQLite-backed repo"
+      - "HTTPS-only, length, extension checks"
+      - "422 per-field array envelope"
+    tech_debt_resolve: [TD1, TD4, TD9, TD12]
+    tech_debt_add: []
+
+  - day: 12
+    branch: feat/dev-override-path-policy-and-cursor
+    objective: "Local path override policy + traversal protection + cursor plan"
+    deliverables:
+      - "ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy"
+      - "Traversal blocking"
+      - "Cursor design note (composite/opaque)"
+    tech_debt_resolve: [TD5, TD10, TD11]
+    tech_debt_add: [TD14]

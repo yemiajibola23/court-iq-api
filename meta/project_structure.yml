@@ -1,0 +1,37 @@
+project:
+  required_dirs:
+    - app
+    - app/routers
+    - app/repositories
+    - app/models
+    - app/schemas
+    - tests
+    - tests/routers
+    - meta
+    - tools
+    - notes
+    - .github
+    - .github/workflows
+
+  required_files:
+    - README.md
+    - docs/TECH_DEBT.md
+    - meta/plan.yml
+    - meta/project_structure.yml
+    - app/routers/plays.py
+    - app/repositories/plays_repo.py
+    - app/models/play.py
+    - app/schemas/play.py
+    - ROADMAP.md
+    # at least one list test file must exist under tests/routers
+    - tests/routers/test_plays_list.py
+    - .github/pull_request_template.md
+
+  optional_files:
+    - notes/day08-summary.md
+    - .github/workflows/plan-validate.yml
+
+  # You can add glob patterns here if you prefer patterns over explicit files.
+  # Any entry containing '*' will be treated as a glob and is satisfied if it matches >= 1 file.
+  globs_ok:
+    - "tests/routers/test_*plays*.py"

@@ -1,0 +1,17 @@
+repos:
+  # Local hooks to run our Python validators
+  - repo: local
+    hooks:
+      - id: validate-structure
+        name: Validate project structure
+        entry: python tools/validate_structure.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: validate-plan
+        name: Validate plan alignment
+        entry: python tools/validate_plan.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
