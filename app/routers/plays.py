@@ -4,6 +4,7 @@ from typing import Optional, List
 
 from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
 from app.repositories import plays_repo
+from app.utils.mappers import to_play_dto
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
 # TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
@@ -32,6 +33,6 @@ def list_plays(limit: int = Query(10, ge=1, le=100), cursor: Optional[str] = Non
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid cursor")
     
-    dtos: List[PlayRead] = [PlayRead(id=p.id, title=p.title, video_path=p.video_path) for p in items]
+    dtos: List[PlayRead] = [to_play_dto(p) for p in items]
     
     return {"data": dtos, "nextCursor": next_cursor}
