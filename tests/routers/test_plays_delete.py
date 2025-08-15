@@ -83,3 +83,14 @@ def test_list_no_longer_includes_deleted_id(client, seed_many_plays):
         
         # assert: the other two ids ARE present
         assert after_ids == before_ids - {middle_id}
+
+def test_delete_unknown_id_returns_404(client):
+    # arrange: generate a UUID that doesn't exist (uuid4())
+    unknown_id = uuid4()
+    # act: DELETE /v1/plays/{unknown_id}
+    res = client.delete(f"/v1/plays/{unknown_id}")
+    
+    # assert: status == 404
+    assert res.status_code  == 404
+    
+    # (optional) assert: response body is empty or matches error schema, if standardized
