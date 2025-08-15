@@ -9,6 +9,7 @@ from app.models.play import Play
 _STORE: Dict[str, Play] = {}
 
 def _matches_prefix(title: str, prefix: Optional[str]) -> bool:
+    """Case-insensitive, trimmed prefix match. None/'' => match all."""
     if not prefix:                 # None or ""
         return True
     return title.casefold().startswith(prefix.strip().casefold())
@@ -30,6 +31,13 @@ def clear_store():
 
 
 def list_plays(cursor: Optional[str], limit: int, title_prefix: Optional[str] = None) -> Tuple[List[Play], Optional[str]]:
+    """Filter by title prefix, then paginate over stable insertion order.
+
+    Cursor policy:
+    - cursor must be an id present within the filtered view; otherwise ValueError('invalid_cursor')
+    - results start strictly AFTER the cursor
+    - next_cursor is the last id in the page iff more items remain
+    """
     # 1) Keys are in insertion order in Python 3.7+
     keys = [k for k in _STORE if _matches_prefix(_STORE[k].title, title_prefix)]
     
