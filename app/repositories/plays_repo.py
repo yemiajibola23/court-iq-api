@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid4, UUID
 from typing import Optional, Dict, List, Tuple
 from app.models.play import Play
 
@@ -63,3 +63,8 @@ def list_plays(cursor: Optional[str], limit: int, title_prefix: Optional[str] = 
     next_cursor = page_keys[-1] if (page_keys and has_more) else None
     
     return items, next_cursor
+
+def delete(id: str) -> bool:
+    removed = _STORE.pop(id, None)
+    
+    return removed is not None

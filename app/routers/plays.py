@@ -42,10 +42,10 @@ def list_plays(
     return {"data": dtos, "nextCursor": next_cursor}
 
 @router.delete("/{id}")
-def delete_play(id: uuid.UUID):
+def delete_play(id: str):
+    key = str(id)
+    ok = plays_repo.delete(key)
+    if not ok:
+        raise HTTPException(status_code=404)
+    
     return Response(status_code=204)
-
-# call repo.delete_play(play_id) -> bool (or raises)
-# if repo.delete_play returns False (not found), raise HTTPException(404)
-
-# if True, return Response(status_code=204) with empty body
