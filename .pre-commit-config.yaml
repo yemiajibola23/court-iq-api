@@ -7,11 +7,11 @@ repos:
         entry: python tools/validate_structure.py
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
 
       - id: validate-plan
         name: Validate plan alignment
         entry: python tools/validate_plan.py
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
