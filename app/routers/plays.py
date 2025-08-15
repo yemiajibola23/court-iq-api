@@ -40,3 +40,12 @@ def list_plays(
     dtos: List[PlayRead] = [to_play_dto(p) for p in items]
     
     return {"data": dtos, "nextCursor": next_cursor}
+
+@router.delete("/{id}")
+def delete_play(id: uuid.UUID):
+    return Response(status_code=204)
+
+# call repo.delete_play(play_id) -> bool (or raises)
+# if repo.delete_play returns False (not found), raise HTTPException(404)
+
+# if True, return Response(status_code=204) with empty body
