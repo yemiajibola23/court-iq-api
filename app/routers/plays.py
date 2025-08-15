@@ -27,7 +27,11 @@ def get_play(id: str):
     return PlayRead(id=play.id, title=play.title, video_path=play.video_path)
 
 @router.get("/")
-def list_plays(limit: int = Query(10, ge=1, le=100), cursor: Optional[str] = None, title: Optional [str] = None):
+def list_plays(
+    limit: int = Query(10, ge=1, le=100),
+    cursor: Optional[str] = None, 
+    title: Optional[str] = None
+):
     try:
         items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
     except ValueError:
