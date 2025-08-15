@@ -63,6 +63,7 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] 📝 docs: document endpoint and errors
 
 ## Day 8 – List Plays (GET with pagination/filter)
+**Objective:** GET /v1/plays with pagination & title filter
 
 - [x] ✨ feat(api): add `GET /v1/plays?cursor=&limit=&title=` pagination + filter
 - [x] ✅ test(api): pagination (limit/cursor) and filtering by title prefix
