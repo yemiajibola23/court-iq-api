@@ -142,9 +142,11 @@ http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
 ## GET `/v1/plays` — List Plays (cursor pagination + title prefix filter)
 
 ### Query Params
-- `limit` *(int, 1–100, default 10)* — max items per page.
-- `cursor` *(string, optional)* — the **last returned `id`** from the previous page. Results start **after** this id within the filtered view.
-- `title` *(string, optional)* — case-insensitive, trimmed **prefix** filter applied to `title`. Filtering happens **before** pagination.
+| Name    | Type | Required | Notes |
+|---------|------|----------|-------|
+| `limit` | int  | no       | Max items per page. Default: **10**. Minimum: 1, Maximum: 100. |
+| `cursor`| str  | no       | The **last returned `id`** from the previous page. Results start **after** this id within the filtered view. |
+| `title` | str  | no       | Case-insensitive, trimmed **prefix** filter on `title`. Filtering happens **before** pagination. |
 
 ### Response
 ```json
@@ -190,6 +192,19 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
 # {"detail":"Invalid cursor"}
 ```
 
+### GET `/v1/plays` — List Plays (cursor pagination + title prefix filter)
+
+**Query params**
+
+
+**Response shape**
+```json
+{
+  "data": [
+    { "id": "2b9e4f7b-...", "title": "Alpha Cut", "video_path": "https://example.com/clip1.mp4" }
+  ],
+  "nextCursor": "9e1d3a28-..."   // null when no more results
+}
 
 
 
