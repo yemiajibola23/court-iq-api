@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
-"""
-Validate that today's plan (meta/plan.yml) matches TECH_DEBT.md and ROADMAP.md.
+from __future__ import annotations
+import re, sys
+from pathlib import Path
+from typing import NoReturn, Dict, List, Tuple, Any
+import yaml
+import argparse, sys
+
+ROOT = Path(__file__).resolve().parents[1]
+PLAN = ROOT / "meta" / "plan.yml"
+TECH_DEBT = ROOT / "TECH_DEBT.md"
+ROADMAP = ROOT /"ROADMAP.md"
+
+DESC = """Validate that today's plan (meta/plan.yml) matches TECH_DEBT.md and ROADMAP.md.
 
 Checks:
 1) Every TD in today's `tech_debt_resolve` exists in TECH_DEBT.md and is marked Resolved.
 2) Every TD in today's `tech_debt_add` exists in TECH_DEBT.md (status can be Pending).
 3) ROADMAP.md contains a Day <current_day> section AND includes today's objective text.
 """
-from __future__ import annotations
-import re, sys
-from pathlib import Path
-from typing import NoReturn, Dict, List, Tuple, Any
-import yaml
-
-ROOT = Path(__file__).resolve().parents[1]
-PLAN = ROOT / "meta" / "plan.yml"
-TECH_DEBT = ROOT / "docs" / "TECH_DEBT.md"
-ROADMAP = ROOT /"ROADMAP.md"
 
 def load_plan(path: Path) -> Dict[str, Any]:
     if not path.exists():
@@ -131,4 +132,6 @@ def main():
     print(f"✅ Plan validation passed for Day {current_day}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=DESC, add_help=True)
+    parser.parse_args()   # just to enable --help
+    sys.exit(main())

@@ -95,7 +95,7 @@ tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, wo
 	$(PAUSE)
 	@echo
 	@echo "💡 TECH_DEBT.md -------------------------------------------------"
-	@bat --style=plain --paging=never docs/TECH_DEBT.md || cat TECH_DEBT.md
+	@bat --style=plain --paging=never TECH_DEBT.md || cat TECH_DEBT.md
 	$(PAUSE)
 	@echo
 	@echo "🔧 WORKFLOW.md --------------------------------------------------"

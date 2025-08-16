@@ -3,6 +3,28 @@
 # Why:  Make onboarding and context switching painless & consistent
 # Usage: scripts/onboard.sh
 
+#!/usr/bin/env bash
+# ...
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'EOF'
+Usage: scripts/onboard.sh
+
+What: One-shot setup for a fresh clone (venv, dev deps, pre-commit)
+Why:  Make onboarding and context switching painless & consistent
+
+Steps:
+  - Create/activate .venv
+  - Upgrade pip
+  - Install (dev) requirements
+  - Install pre-commit and hooks
+  - (Optional) pre-commit run --all-files
+  - Quick smoke checks
+
+EOF
+  exit 0
+fi
+
+
 set -euo pipefail
 
 # Resolve repo root regardless of where script is invoked
