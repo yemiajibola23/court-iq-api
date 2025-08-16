@@ -111,5 +111,16 @@ tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, wo
 	@echo
 	@echo "🎉 End of tour! You now know the core docs that drive this project."
 
+handbook: ## Open the DevOps Handbook in your $EDITOR (or print path)
+	@path="docs/DEVOPS_HANDBOOK.md"; \
+	echo "📘 $$path"; \
+	if [ -n "$$EDITOR" ]; then "$$EDITOR" "$$path"; else echo "(set $$EDITOR to auto-open)"; fi
+
+docs-refresh: ## Regenerate docs/SCRIPTS.md and show the first screen
+	@$(ACTIVATE) && python tools/docgen_scripts.py --out docs/SCRIPTS.md
+	@echo "✅ docs/SCRIPTS.md regenerated"
+	@head -n 40 docs/SCRIPTS.md | sed -e 's/^/│ /'
+
+
 .PHONY: help venv deps hooks test validate check docs td td-sync pr onboard \
-        tour tour-note tour-list tour-open
+        tour tour-note tour-list tour-open handbook docs-refresh
