@@ -87,7 +87,7 @@ tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, wo
 	@echo "🚀 Welcome to the CourtIQ project tour!"
 	@echo
 	@echo "📖 VISION.md ---------------------------------------------------"
-	@bat --style=plain --paging=never VISION.md || cat VISION.md
+	@bat --style=plain --paging=never docs/VISION.md || cat VISION.md
 	$(PAUSE)
 	@echo
 	@echo "🗺️ ROADMAP.md ---------------------------------------------------"
@@ -95,11 +95,11 @@ tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, wo
 	$(PAUSE)
 	@echo
 	@echo "💡 TECH_DEBT.md -------------------------------------------------"
-	@bat --style=plain --paging=never TECH_DEBT.md || cat TECH_DEBT.md
+	@bat --style=plain --paging=never docs/TECH_DEBT.md || cat TECH_DEBT.md
 	$(PAUSE)
 	@echo
 	@echo "🔧 WORKFLOW.md --------------------------------------------------"
-	@bat --style=plain --paging=never WORKFLOW.md || cat WORKFLOW.md
+	@bat --style=plain --paging=never ../../docs/WORKFLOW.md || cat WORKFLOW.md
 	$(PAUSE)
 	@echo
 	@echo "🤝 CONTRIBUTING.md ---------------------------------------------"
@@ -107,7 +107,7 @@ tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, wo
 	$(PAUSE)
 	@echo
 	@echo "📋 GUIDELINES.md ------------------------------------------------"
-	@bat --style=plain --paging=never GUIDELINES.md || cat GUIDELINES.md
+	@bat --style=plain --paging=never ../../docs/GUIDELINES.md || cat GUIDELINES.md
 	@echo
 	@echo "🎉 End of tour! You now know the core docs that drive this project."
 
