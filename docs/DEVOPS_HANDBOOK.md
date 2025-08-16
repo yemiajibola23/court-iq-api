@@ -6,6 +6,11 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 
 ---
 
+## Getting Started
+**New machine?** Run: `make onboard` (or `scripts/onboard.sh`)
+
+---
+
 ## Makefile — what/why/how
 - **What:** A command menu for project tasks (`make test`, `make check`, `make docs`).
 - **Why:** Short, memorable commands; consistent across machines.
@@ -93,3 +98,5 @@ flowchart LR
 
 **Index**
 - [ ] (add links as you create tour notes)
+
+

@@ -48,4 +48,68 @@ td-sync: ## Align TECH_DEBT.md with meta/plan.yml for current_day
 pr: ## Open a PR prefilled from plan.yml (requires gh)
 	@scripts/open_pr.sh "Day $$DAY: $$TITLE"
 
-.PHONY: help venv deps hooks test validate check docs td-sync pr
+onboard: ## One-shot setup: venv, dev deps, pre-commit, quick checks
+	@scripts/onboard.sh
+
+# ---- System Tour -------------------------------------------------------------
+
+TOUR_DIR := docs/system-tours
+TOUR_DATE := $(shell date +%F)
+TOUR_FILE := $(TOUR_DIR)/$(TOUR_DATE).md
+
+tour-note: ## Create today's System Tour note (docs/system-tours/YYYY-MM-DD.md)
+	@mkdir -p $(TOUR_DIR)
+	@if [ -f "$(TOUR_FILE)" ]; then \
+		echo "🔁 Tour for $(TOUR_DATE) already exists at $(TOUR_FILE)"; \
+	else \
+		printf "# System Tour — %s — <Topic>\n\n## ELI5\n\n## Expert Notes\n- \n- \n- \n\n## Diagram (optional)\n\`\`\`mermaid\nflowchart LR\n  A[Trigger] --> B[Tool/Hook]\n  B --> C[Outcome]\n\`\`\`\n" "$(TOUR_DATE)" > "$(TOUR_FILE)"; \
+		echo "✅ Created $(TOUR_FILE)"; \
+	fi
+	@echo "💡 Set a topic and fill in ELI5 + Expert Notes."
+
+tour-list: ## List existing System Tour notes
+	@ls -1 $(TOUR_DIR) 2>/dev/null || echo "(none yet — run 'make tour-note')"
+
+tour-open: ## Open the latest System Tour note in your $EDITOR (or print path)
+	@latest=$$(ls -1 $(TOUR_DIR) 2>/dev/null | tail -n 1); \
+	if [ -z "$$latest" ]; then \
+		echo "(none yet — run 'make tour-note')"; \
+	else \
+		path="$(TOUR_DIR)/$$latest"; \
+		echo "📄 $$path"; \
+		if [ -n "$$EDITOR" ]; then "$$EDITOR" "$$path"; fi; \
+	fi
+
+# Pause helper (skip with NO_TOUR_PAUSE=1)
+PAUSE = @if [ -z "$$NO_TOUR_PAUSE" ]; then read -r -p "⏸  Press Enter to continue… " _; fi
+
+tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, workflow, contributing)
+	@echo "🚀 Welcome to the CourtIQ project tour!"
+	@echo
+	@echo "📖 VISION.md ---------------------------------------------------"
+	@bat --style=plain --paging=never VISION.md || cat VISION.md
+	$(PAUSE)
+	@echo
+	@echo "🗺️ ROADMAP.md ---------------------------------------------------"
+	@bat --style=plain --paging=never ROADMAP.md || cat ROADMAP.md
+	$(PAUSE)
+	@echo
+	@echo "💡 TECH_DEBT.md -------------------------------------------------"
+	@bat --style=plain --paging=never TECH_DEBT.md || cat TECH_DEBT.md
+	$(PAUSE)
+	@echo
+	@echo "🔧 WORKFLOW.md --------------------------------------------------"
+	@bat --style=plain --paging=never WORKFLOW.md || cat WORKFLOW.md
+	$(PAUSE)
+	@echo
+	@echo "🤝 CONTRIBUTING.md ---------------------------------------------"
+	@bat --style=plain --paging=never CONTRIBUTING.md || cat CONTRIBUTING.md
+	$(PAUSE)
+	@echo
+	@echo "📋 GUIDELINES.md ------------------------------------------------"
+	@bat --style=plain --paging=never GUIDELINES.md || cat GUIDELINES.md
+	@echo
+	@echo "🎉 End of tour! You now know the core docs that drive this project."
+
+.PHONY: help venv deps hooks test validate check docs td td-sync pr onboard \
+        tour tour-note tour-list tour-open
