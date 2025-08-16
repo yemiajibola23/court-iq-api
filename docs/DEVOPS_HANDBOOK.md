@@ -22,7 +22,7 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 - **What:** Configuration files (GitHub Actions, `meta/plan.yml`, pre-commit).
 - **Why:** Declarative config → predictable automation.
 - **How:** Keys, anchors, and patterns we actually use (no theory overload).
-- ➡️ See: (to be added) `docs/YAML_GUIDE.md`
+- ➡️ See: [docs/YAML_GUIDE.md](YAML_GUIDE.md)
 
 ## Automation Scripts (`tools/*.py`, `scripts/*.sh`)
 - **What:** Small, single-purpose helpers (PR generator, tech-debt CLI).
