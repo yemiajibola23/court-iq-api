@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Open a PR with a body auto-generated from meta/plan.yml.
+# What: Open a PR using a body auto-generated from meta/plan.yml
+# Why:  No manual copy/paste of objectives or tech debt
+# Usage: scripts/open_pr.sh "Day 10: Validation polish"
 # Requires: gh, Python (PyYAML), and tools/gen_pr_body.py
 set -euo pipefail
 
