@@ -15,3 +15,9 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit]
+      
+      - id: tech-debt-sync-check
+        name: tech-debt sync (dry-run)
+        entry: python tools/tech_debt.py sync --dry-run
+        language: system
+        files: ^(TECH_DEBT\.md|meta/plan\.yml)$
