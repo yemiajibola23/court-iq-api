@@ -1,4 +1,4 @@
-current_day: 8
+current_day: 9
 
 days:
   - day: 8
@@ -21,8 +21,8 @@ days:
       - "List reflects deletion"
       - "Router errors tightened"
       - "Docs: deletion examples & notes"
-    tech_debt_resolve: []
-    tech_debt_add: []
+    tech_debt_resolve: [TD2]
+    tech_debt_add: [TD21]
 
   # ⬇️ Day 10 takes the validation + list clamps work
   - day: 10
