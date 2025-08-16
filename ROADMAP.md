@@ -74,10 +74,10 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 ## Day 9 – Delete Play
 **Objective:** Delete Play
 
-- [ ] ✨ feat(api): add `DELETE /v1/plays/{id}` → 204
-- [ ] ✅ test(api): 204 on success, 404 on unknown id
+- [x] ✨ feat(api): add `DELETE /v1/plays/{id}` → 204
+- [x] ✅ test(api): 204 on success, 404 on unknown id
 - [ ] 🔨 refactor(repos): transactional delete pipeline (future cascade hooks)
-- [ ] 🧹 chore: tighten router error handling
+- [x] 🧹 chore: tighten router error handling
 - [ ] 📝 docs: deletion side-effects note (future storage cleanup)
 
 ## Day 10 – Validation polish + list clamps
