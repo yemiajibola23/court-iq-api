@@ -14,6 +14,9 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 
 
 ---
+### Command Map
+- ➡️ See: [`docs/COMMAND_MMP.md`](COMMAND_MAP.md)
+---
 
 ## Makefile — what/why/how
 - **What:** A command menu for project tasks (`make test`, `make check`, `make docs`).
