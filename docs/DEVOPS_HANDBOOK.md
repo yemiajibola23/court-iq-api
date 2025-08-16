@@ -58,3 +58,38 @@ flowchart LR
 > Tip: After each coding day, add a tiny "ELI5 + Expert Notes" block to one topic here.
 
 ---
+
+## Weekly System Tour (10–15 min)
+
+**Goal:** Strengthen “explain-anything” fluency by documenting one plumbing piece each week.
+
+**Checklist**
+1. Pick one artifact you touched (Makefile target, pre-commit hook, CI job, script).
+2. Add an entry in `docs/system-tours/` named `YYYY-MM-DD.md`.
+3. Write two blocks:
+   - **ELI5:** explain like to a junior dev (5–8 sentences).
+   - **Expert Notes:** 3 bullets (gotchas, debug tips, edge cases).
+4. If relevant, add a small mermaid sketch (sequence or flow).
+5. Link the new entry back here.
+
+**Template (paste into each new file)**
+
+# System Tour — YYYY-MM-DD — <Topic>
+
+## ELI5
+<short plain-language explanation>
+
+## Expert Notes
+- <gotcha or nuance>
+- <debug tip>
+- <edge case or tradeoff>
+
+## Diagram (optional)
+```mermaid
+flowchart LR
+  A[Trigger] --> B[Tool/Hook]
+  B --> C[Outcome]
+  ```
+
+**Index**
+- [ ] (add links as you create tour notes)
