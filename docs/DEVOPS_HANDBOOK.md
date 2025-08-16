@@ -6,8 +6,12 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 
 ---
 
-## Getting Started
-**New machine?** Run: `make onboard` (or `scripts/onboard.sh`)
+### Getting Started
+
+> 1) `make onboard` (or `scripts/onboard.sh`)  
+> 2) `make help` to see commands  
+> 3) `make tour` for a guided doc walkthrough
+
 
 ---
 
@@ -15,13 +19,14 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 - **What:** A command menu for project tasks (`make test`, `make check`, `make docs`).
 - **Why:** Short, memorable commands; consistent across machines.
 - **How:** Targets + comments (we use a “self-documenting” pattern).
-- ➡️ See: (to be added) `docs/MAKEFILE_GUIDE.md`
+- ➡️ See: `docs/SCRIPTS.md` (for generator), `Makefile` (run `make help`)
+
 
 ## Pre-commit Hooks
 - **What:** Local checks that run **before** a commit (validators, linters, etc.).
 - **Why:** Prevents “oops” commits; keeps ROADMAP/TECH_DEBT aligned with `meta/plan.yml`.
 - **How:** `.pre-commit-config.yaml` + `pre-commit install`.
-- ➡️ See: (to be added) `docs/PRE_COMMIT.md`
+- ➡️ See: [`docs/PRE_COMMIT.md`](PRE_COMMIT.md)
 
 ## YAML in This Repo
 - **What:** Configuration files (GitHub Actions, `meta/plan.yml`, pre-commit).
@@ -33,7 +38,9 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 - **What:** Small, single-purpose helpers (PR generator, tech-debt CLI).
 - **Why:** Replace manual, error-prone edits with commands.
 - **How:** Each script has a “What/Why/Usage” header; a doc generator builds a reference page.
-- ➡️ See: (to be added) `docs/SCRIPTS.md` (auto-generated)
+- ➡️ See: (to be added) `` (auto-generated)
+- ➡️ See: [`docs/SCRIPTS.md`](SCRIPTS.md)
+
 
 ## Validators
 - **What:** `tools/validate_structure.py` + `tools/validate_plan.py`
