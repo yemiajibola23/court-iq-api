@@ -78,7 +78,7 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] ✅ test(api): 204 on success, 404 on unknown id
 - [ ] 🔨 refactor(repos): transactional delete pipeline (future cascade hooks)
 - [x] 🧹 chore: tighten router error handling
-- [ ] 📝 docs: deletion side-effects note (future storage cleanup)
+- [x] 📝 docs: deletion side-effects note (future storage cleanup)
 
 ## Day 10 – Validation polish + list clamps
 **Objective:** Validation polish + list clamps

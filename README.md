@@ -196,7 +196,6 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
 
 **Query params**
 
-
 **Response shape**
 ```json
 {
@@ -205,7 +204,31 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
   ],
   "nextCursor": "9e1d3a28-..."   // null when no more results
 }
+```
 
+### DELETE `/v1/plays/{id}` — Delete Play by ID
+
+**Path params**
+- `id` — UUID of the Play to delete
+
+**Response codes**
+- **204 No Content** — Play deleted successfully  
+- **404 Not Found** — No Play exists with that id
+
+**Response shape**
+```json
+// 204 → empty body
+{}
+
+// 404 → standardized error schema
+{ "detail": "Play not found" }
+```
+
+**Examples**
+**curl**
+```bash
+curl -X DELETE http://localhost:8000/v1/plays/2b9e4f7b-1234-5678-9abc-def012345678
+```
 
 
 ## Contributing
