@@ -25,10 +25,6 @@ def assert_422_field():
         )
     return _assert
 
-@pytest.fixture(autouse=True)
-def _reset_repo_state():
-    clear_store()
-
 @pytest.fixture(scope="function")
 def seed_many_plays(client) -> Callable[[List[Dict]], List[Dict]]:
     """
@@ -37,6 +33,7 @@ def seed_many_plays(client) -> Callable[[List[Dict]], List[Dict]]:
     Returns the list of created Play DTOs (in the same order).
     """
     def _seed(stubs: List[Dict]) -> List[Dict]:
+        clear_store()
         created: List[Dict] = []
         for i, stub in enumerate(stubs, start=1):
             # Minimal valid payload 

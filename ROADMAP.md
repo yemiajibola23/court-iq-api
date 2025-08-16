@@ -72,20 +72,21 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] 📝 docs: list endpoint usage examples
 
 ## Day 9 – Delete Play
+**Objective:** Delete Play
 
-- [ ] ✨ feat(api): add `DELETE /v1/plays/{id}` → 204
-- [ ] ✅ test(api): 204 on success, 404 on unknown id
+- [x] ✨ feat(api): add `DELETE /v1/plays/{id}` → 204
+- [x] ✅ test(api): 204 on success, 404 on unknown id
 - [ ] 🔨 refactor(repos): transactional delete pipeline (future cascade hooks)
-- [ ] 🧹 chore: tighten router error handling
-- [ ] 📝 docs: deletion side-effects note (future storage cleanup)
+- [x] 🧹 chore: tighten router error handling
+- [x] 📝 docs: deletion side-effects note (future storage cleanup)
 
-## Day 10 – Update Play Metadata (PATCH)
+## Day 10 – Validation polish + list clamps
+**Objective:** Validation polish + list clamps
 
-- [ ] ✨ feat(api): add `PATCH /v1/plays/{id}` for title/notes updates
-- [ ] ✅ test(api): partial update, invalid field ignored, 404 unknown id
-- [ ] 🔨 refactor(schemas): `PlayUpdate` with optional fields
-- [ ] 🧹 chore: add optimistic timestamp `updatedAt`
-- [ ] 📝 docs: patch semantics and examples
+- [ ] ✨ feat(api): harden `video_path` validation (https-only; length ≤ 2048; extensions {.mp4,.mov,.m4v,.webm})
+- [ ] ✅ test(api): list default limit = 10; clamp to [1,100]
+- [ ] 🔨 refactor(api): optional `hasMore` boolean in list response
+- [ ] 📝 docs: update README examples and error shapes
 
 ## Day 11 – Storage Provider Wiring
 

@@ -1,4 +1,4 @@
-current_day: 8
+current_day: 9
 
 days:
   - day: 8
@@ -11,23 +11,28 @@ days:
     tech_debt_resolve: [TD8, TD16, TD17]
     tech_debt_add: [TD13, TD14, TD15, TD18]
 
+  # ⬇️ Day 9 is now 'Delete Play' (feature-first)
   - day: 9
+    branch: feat/api-delete-play
+    objective: "Delete Play"
+    deliverables:
+      - "DELETE /v1/plays/{id} route → 204"
+      - "404 on unknown id"
+      - "List reflects deletion"
+      - "Router errors tightened"
+      - "Docs: deletion examples & notes"
+    tech_debt_resolve: [TD2]
+    tech_debt_add: [TD21]
+
+  # ⬇️ Day 10 takes the validation + list clamps work
+  - day: 10
     branch: feat/api-validation-and-list-polish
     objective: "Validation polish + list clamps"
     deliverables:
-      - "POST /v1/plays video_path validation"
-      - "List default/clamp tests"
+      - "POST /v1/plays video_path validation (https-only, allowed extensions, length)"
+      - "List default/clamp tests (default=10; clamp to [1,100])"
       - "Optional hasMore boolean"
     tech_debt_resolve: [TD2, TD15, TD18]
-    tech_debt_add: []
-
-  - day: 10
-    branch: feat/repo-di-and-unit-tests
-    objective: "Introduce PlayRepository + dependency override"
-    deliverables:
-      - "Repo interface + FastAPI dependency"
-      - "Repo unit tests (create/get/list)"
-    tech_debt_resolve: [TD13, TD3]
     tech_debt_add: []
 
   - day: 11
