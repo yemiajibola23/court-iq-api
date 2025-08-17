@@ -1,4 +1,4 @@
-current_day: 9
+current_day: 10
 
 days:
   - day: 8
@@ -32,7 +32,8 @@ days:
       - "POST /v1/plays video_path validation (https-only, allowed extensions, length)"
       - "List default/clamp tests (default=10; clamp to [1,100])"
       - "Optional hasMore boolean"
-    tech_debt_resolve: [TD2, TD15, TD18]
+      - "docs: update README examples and error shapes"
+    tech_debt_resolve: []
     tech_debt_add: []
 
   - day: 11
