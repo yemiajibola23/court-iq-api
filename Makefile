@@ -116,10 +116,21 @@ handbook: ## Open the DevOps Handbook in your $EDITOR (or print path)
 	echo "📘 $$path"; \
 	if [ -n "$$EDITOR" ]; then "$$EDITOR" "$$path"; else echo "(set $$EDITOR to auto-open)"; fi
 
-docs-refresh: ## Regenerate docs/SCRIPTS.md and show the first screen
-	@$(ACTIVATE) && python tools/docgen_scripts.py --out docs/SCRIPTS.md
+# Put these near the top of your Makefile
+REPO_URL ?= https://github.com/yemiajibola23/court-iq-api           # e.g. https://github.com/yourname/yourrepo
+DEFAULT_BRANCH ?= dev
+
+DOCGEN_FLAGS :=
+ifneq ($(strip $(REPO_URL)),)
+DOCGEN_FLAGS += --repo-url $(REPO_URL) --default-branch $(DEFAULT_BRANCH)
+endif
+
+# Update docs-refresh:
+docs-refresh: ## Regenerate docs/SCRIPTS.md and preview the top
+	@$(ACTIVATE) && python tools/docgen_scripts.py --out docs/SCRIPTS.md $(DOCGEN_FLAGS)
 	@echo "✅ docs/SCRIPTS.md regenerated"
 	@head -n 40 docs/SCRIPTS.md | sed -e 's/^/│ /'
+
 
 
 .PHONY: help venv deps hooks test validate check docs td td-sync pr onboard \

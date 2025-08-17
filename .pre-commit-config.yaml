@@ -22,3 +22,15 @@ repos:
         language: system
         pass_filenames: false
         files: ^(TECH_DEBT\.md|meta/plan\.yml)$
+      
+      - id: docs-refresh
+        name: rebuild SCRIPTS.md (check)
+        entry: python
+        language: system
+        pass_filenames: false
+        files: ^(tools/|scripts/)
+        args:
+          - tools/docgen_scripts.py
+          - --out
+          - docs/SCRIPTS.md
+          - --check
