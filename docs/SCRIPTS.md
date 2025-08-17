@@ -4,6 +4,7 @@
 - [Python tools](#python-tools)
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
+  - [tools/td_auto_add.py](#sec-tools-td-auto-add-py)
   - [tools/tech_debt.py](#sec-tools-tech-debt-py)
   - [tools/validate_plan.py](#sec-tools-validate-plan-py)
   - [tools/validate_structure.py](#sec-tools-validate-structure-py)
@@ -15,7 +16,7 @@
 
 ### `tools/docgen_scripts.py`
 <a id="sec-tools-docgen-scripts-py"></a>
-_Source: [tools/docgen_scripts.py](tools/docgen_scripts.py)_
+_Source: [tools/docgen_scripts.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/docgen_scripts.py)_
 
 _Summary:_
 
@@ -59,7 +60,7 @@ options:
 
 ### `tools/gen_pr_body.py`
 <a id="sec-tools-gen-pr-body-py"></a>
-_Source: [tools/gen_pr_body.py](tools/gen_pr_body.py)_
+_Source: [tools/gen_pr_body.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/gen_pr_body.py)_
 
 _Summary:_
 
@@ -87,9 +88,46 @@ options:
   --write WRITE  Write output to file instead of stdout
 ```
 
+### `tools/td_auto_add.py`
+<a id="sec-tools-td-auto-add-py"></a>
+_Source: [tools/td_auto_add.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/td_auto_add.py)_
+
+_Summary:_
+
+Auto-increment TD row creator for TECH_DEBT.md
+
+Usage examples:
+  # Print next row only (no write)
+  python tools/td_auto_add.py --desc "GitHub Action: promote plan.yml current_day on merge" --when "Day 10" --status Pending --no-write
+
+  # Insert into TECH_DEBT.md in-place
+  python tools/td_auto_add.py --desc "Add live CI badges to README via GHA" --when "Day 10" --status Pending
+
+Notes:
+- Auto-detects last TD id (e.g., TD21 -> TD22)
+- Writes a Markdown table row like:
+  | TD22 | Add live CI badges to README via GHA | Day 10 | Pending |
+- When writing, appends as the **last TD row** in the main table (before the --- separator)
+
+**`--help` output:**
+
+```text
+usage: td_auto_add.py [-h] --desc DESC --when WHEN [--status STATUS]
+                      [--no-write]
+
+Auto-add next TD row to TECH_DEBT.md
+
+options:
+  -h, --help       show this help message and exit
+  --desc DESC      Description column text
+  --when WHEN      e.g., "Day 10"
+  --status STATUS  Pending | In-Progress | Resolved (default: Pending)
+  --no-write       Do not modify TECH_DEBT.md; print row for copy/paste
+```
+
 ### `tools/tech_debt.py`
 <a id="sec-tools-tech-debt-py"></a>
-_Source: [tools/tech_debt.py](tools/tech_debt.py)_
+_Source: [tools/tech_debt.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/tech_debt.py)_
 
 _Summary:_
 
@@ -140,7 +178,7 @@ options:
 
 ### `tools/validate_plan.py`
 <a id="sec-tools-validate-plan-py"></a>
-_Source: [tools/validate_plan.py](tools/validate_plan.py)_
+_Source: [tools/validate_plan.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/validate_plan.py)_
 
 _Summary:_
 
@@ -171,7 +209,7 @@ options:
 
 ### `tools/validate_structure.py`
 <a id="sec-tools-validate-structure-py"></a>
-_Source: [tools/validate_structure.py](tools/validate_structure.py)_
+_Source: [tools/validate_structure.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/validate_structure.py)_
 
 _Summary:_
 
@@ -193,7 +231,7 @@ options:
 
 ### `scripts/onboard.sh`
 <a id="sec-scripts-onboard-sh"></a>
-_Source: [scripts/onboard.sh](scripts/onboard.sh)_
+_Source: [scripts/onboard.sh](https://github.com/yemiajibola23/court-iq-api/blob/dev/scripts/onboard.sh)_
 
 _Summary:_
 
@@ -220,7 +258,7 @@ Steps:
 
 ### `scripts/open_pr.sh`
 <a id="sec-scripts-open-pr-sh"></a>
-_Source: [scripts/open_pr.sh](scripts/open_pr.sh)_
+_Source: [scripts/open_pr.sh](https://github.com/yemiajibola23/court-iq-api/blob/dev/scripts/open_pr.sh)_
 
 _Summary:_
 
@@ -245,6 +283,5 @@ Behavior:
 Examples:
   scripts/open_pr.sh "Day 10: Validation polish"
 ```
-
 ---
-_Generated on 2025-08-16T20:16:12_
+_Generated on 2025-08-17T05:37:25_

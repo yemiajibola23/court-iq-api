@@ -34,3 +34,7 @@ repos:
           - --out
           - docs/SCRIPTS.md
           - --check
+          - --repo-url
+          - https://github.com/yemiajibola23/court-iq-api
+          - --default-branch
+          - dev

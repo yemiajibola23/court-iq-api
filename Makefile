@@ -45,6 +45,39 @@ td: ## View TECH_DEBT.md list items
 td-sync: ## Align TECH_DEBT.md with meta/plan.yml for current_day
 	@$(ACTIVATE) && python tools/tech_debt.py sync || echo "Skipping: tech_debt.py not present yet."
 
+# ---- Tech Debt helpers -----------------------------------------------
+
+td-add: ## Add a TECH_DEBT.md row. Usage: make td-add ID=TD42 DESC="..." [WHEN="Day 10"] [STATUS=Pending]
+	@if [ -z "$(ID)" ]; then echo "❌ Missing ID (e.g., ID=TD42)"; exit 1; fi
+	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Automate current_day promotion via GHA\")"; exit 1; fi
+	@$(ACTIVATE) && python tools/tech_debt.py add \
+		--id "$(ID)" \
+		--desc "$(DESC)" \
+		--when "$(TD_WHEN)" \
+		--status "$(TD_STATUS)"
+	@echo "✅ Added $(ID): $(DESC) [$(TD_STATUS)] ($(TD_WHEN)))"
+
+# Defaults (override at call time)
+TD_STATUS ?= Pending
+TD_WHEN ?= Day $(DAY)
+
+td-add-auto: ## Auto add next TECH_DEBT row (writes file). Usage: make td-add-auto DESC="..." [WHEN="Day 10"] [STATUS=Pending]
+	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Automate current_day promotion via GHA\")"; exit 1; fi
+	@$(ACTIVATE) && python tools/td_auto_add.py \
+		--desc "$(DESC)" \
+		--when "$(TD_WHEN)" \
+		--status "$(TD_STATUS)"
+	@echo "💡 Tip: run 'git add TECH_DEBT.md' to include the change"
+
+td-row: ## Print next TECH_DEBT row only (copy-pasteable). Usage: make td-row DESC="..." [WHEN="Day 10"] [STATUS=Pending]
+	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Add live CI badges to README via GHA\")"; exit 1; fi
+	@$(ACTIVATE) && python tools/td_auto_add.py \
+		--desc "$(DESC)" \
+		--when "$(TD_WHEN)" \
+		--status "$(TD_STATUS)" \
+		--no-write
+
+
 pr: ## Open a PR prefilled from plan.yml (requires gh)
 	@scripts/open_pr.sh "Day $$DAY: $$TITLE"
 
@@ -133,5 +166,5 @@ docs-refresh: ## Regenerate docs/SCRIPTS.md and preview the top
 
 
 
-.PHONY: help venv deps hooks test validate check docs td td-sync pr onboard \
+.PHONY: help venv deps hooks test validate check docs td td-sync td-auto-add td-add td-row pr onboard \
         tour tour-note tour-list tour-open handbook docs-refresh
