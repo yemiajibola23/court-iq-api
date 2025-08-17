@@ -39,43 +39,48 @@ check: validate test ## Validate + tests (the gate you should run before PR)
 docs: ## Rebuild scripts reference to docs/SCRIPTS.md
 	@$(ACTIVATE) && python tools/docgen_scripts.py --out docs/SCRIPTS.md || echo "Skipping: docgen not present yet."
 
+# ---- Tech Debt helpers (single-source) --------------------------------------
+
 td: ## View TECH_DEBT.md list items
 	python tools/tech_debt.py list
 
 td-sync: ## Align TECH_DEBT.md with meta/plan.yml for current_day
 	@$(ACTIVATE) && python tools/tech_debt.py sync || echo "Skipping: tech_debt.py not present yet."
 
-# ---- Tech Debt helpers -----------------------------------------------
+# ---- Tech Debt helpers (always auto-id) --------------------------------------
 
-td-add: ## Add a TECH_DEBT.md row. Usage: make td-add ID=TD42 DESC="..." [WHEN="Day 10"] [STATUS=Pending]
-	@if [ -z "$(ID)" ]; then echo "❌ Missing ID (e.g., ID=TD42)"; exit 1; fi
-	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Automate current_day promotion via GHA\")"; exit 1; fi
-	@$(ACTIVATE) && python tools/tech_debt.py add \
-		--id "$(ID)" \
-		--desc "$(DESC)" \
-		--when "$(TD_WHEN)" \
-		--status "$(TD_STATUS)"
-	@echo "✅ Added $(ID): $(DESC) [$(TD_STATUS)] ($(TD_WHEN)))"
-
-# Defaults (override at call time)
 TD_STATUS ?= Pending
 TD_WHEN ?= Day $(DAY)
 
-td-add-auto: ## Auto add next TECH_DEBT row (writes file). Usage: make td-add-auto DESC="..." [WHEN="Day 10"] [STATUS=Pending]
-	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Automate current_day promotion via GHA\")"; exit 1; fi
-	@$(ACTIVATE) && python tools/td_auto_add.py \
+td-add: ## Add TD (preview+confirm) for a specific day AND update plan.yml. Usage: make td-add DAY=12 DESC="..." [STATUS=Pending]
+	@if [ -z "$(DAY)" ]; then echo "❌ Missing DAY (e.g., DAY=12)"; exit 1; fi
+	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Opaque cursor token after DB migration\")"; exit 1; fi
+	@out_file=$$(mktemp 2>/dev/null || echo /tmp/td_add_$$.log); \
+	( $(ACTIVATE) && python tools/tech_debt.py add \
 		--desc "$(DESC)" \
-		--when "$(TD_WHEN)" \
-		--status "$(TD_STATUS)"
-	@echo "💡 Tip: run 'git add TECH_DEBT.md' to include the change"
+		--when "Day $(DAY)" \
+		--status "$(TD_STATUS)" \
+		--preview ) | tee "$$out_file"; \
+	td=$$( awk -F= '/^NEW_TD_ID=/{print $$2}' "$$out_file" ); rm -f "$$out_file"; \
+	if [ -z "$$td" ]; then echo "❌ Could not detect NEW_TD_ID from output"; exit 1; fi; \
+	echo "🆕 Detected $$td — updating meta/plan.yml for Day $(DAY)…"; \
+	$(ACTIVATE) && python tools/plan_td_update.py --day $(DAY) --add $$td; \
+	echo "✅ Added $$td to plan.yml Day $(DAY) (tech_debt_add)"
 
-td-row: ## Print next TECH_DEBT row only (copy-pasteable). Usage: make td-row DESC="..." [WHEN="Day 10"] [STATUS=Pending]
-	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Add live CI badges to README via GHA\")"; exit 1; fi
-	@$(ACTIVATE) && python tools/td_auto_add.py \
+td-add-yes: ## Add TD (no prompt) for a specific day AND update plan.yml. Usage: make td-add-yes DAY=12 DESC="..." [STATUS=Pending]
+	@if [ -z "$(DAY)" ]; then echo "❌ Missing DAY (e.g., DAY=12)"; exit 1; fi
+	@if [ -z "$(DESC)" ]; then echo "❌ Missing DESC (e.g., DESC=\"Live badges via GHA\")"; exit 1; fi
+	@out=$$( $(ACTIVATE) && python tools/tech_debt.py add \
 		--desc "$(DESC)" \
 		--when "$(TD_WHEN)" \
 		--status "$(TD_STATUS)" \
-		--no-write
+		--yes ); \
+	echo "$$out"; \
+	td=$$( echo "$$out" | awk -F= '/^NEW_TD_ID=/{print $$2}' ); \
+	if [ -z "$$td" ]; then echo "❌ Could not detect NEW_TD_ID from output"; exit 1; fi; \
+	echo "🆕 Detected $$td — updating meta/plan.yml for Day $(DAY)…"; \
+	$(ACTIVATE) && python tools/plan_td_update.py --day $(DAY) --add $$td; \
+	echo "✅ Added $$td to plan.yml Day $(DAY) (tech_debt_add)"
 
 
 pr: ## Open a PR prefilled from plan.yml (requires gh)
@@ -120,7 +125,7 @@ tour: tour-note ## Walk through key project docs (vision, roadmap, tech debt, wo
 	@echo "🚀 Welcome to the CourtIQ project tour!"
 	@echo
 	@echo "📖 VISION.md ---------------------------------------------------"
-	@bat --style=plain --paging=never docs/VISION.md || cat VISION.md
+	@bat --style=plain --paging=never docs/VISION.md || cat docs/VISION.md
 	$(PAUSE)
 	@echo
 	@echo "🗺️ ROADMAP.md ---------------------------------------------------"
@@ -166,5 +171,5 @@ docs-refresh: ## Regenerate docs/SCRIPTS.md and preview the top
 
 
 
-.PHONY: help venv deps hooks test validate check docs td td-sync td-auto-add td-add td-row pr onboard \
+.PHONY: help venv deps hooks test validate check docs td td-sync td-add td-add-yes pr onboard \
         tour tour-note tour-list tour-open handbook docs-refresh

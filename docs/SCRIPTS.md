@@ -4,7 +4,7 @@
 - [Python tools](#python-tools)
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
-  - [tools/td_auto_add.py](#sec-tools-td-auto-add-py)
+  - [tools/plan_td_update.py](#sec-tools-plan-td-update-py)
   - [tools/tech_debt.py](#sec-tools-tech-debt-py)
   - [tools/validate_plan.py](#sec-tools-validate-plan-py)
   - [tools/validate_structure.py](#sec-tools-validate-structure-py)
@@ -88,41 +88,36 @@ options:
   --write WRITE  Write output to file instead of stdout
 ```
 
-### `tools/td_auto_add.py`
-<a id="sec-tools-td-auto-add-py"></a>
-_Source: [tools/td_auto_add.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/td_auto_add.py)_
+### `tools/plan_td_update.py`
+<a id="sec-tools-plan-td-update-py"></a>
+_Source: [tools/plan_td_update.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/plan_td_update.py)_
 
 _Summary:_
 
-Auto-increment TD row creator for TECH_DEBT.md
+Update meta/plan.yml TD lists for a given day (defaults to current_day).
 
-Usage examples:
-  # Print next row only (no write)
-  python tools/td_auto_add.py --desc "GitHub Action: promote plan.yml current_day on merge" --when "Day 10" --status Pending --no-write
+Usage:
+  # Add TDs to Day 15 (tech_debt_add)
+  python tools/plan_td_update.py --day 15 --add TD42 TD43
 
-  # Insert into TECH_DEBT.md in-place
-  python tools/td_auto_add.py --desc "Add live CI badges to README via GHA" --when "Day 10" --status Pending
+  # Mark TDs resolved on Day 12
+  python tools/plan_td_update.py --day 12 --resolve TD7
 
-Notes:
-- Auto-detects last TD id (e.g., TD21 -> TD22)
-- Writes a Markdown table row like:
-  | TD22 | Add live CI badges to README via GHA | Day 10 | Pending |
-- When writing, appends as the **last TD row** in the main table (before the --- separator)
+  # No --day provided -> uses current_day in plan.yml
 
 **`--help` output:**
 
 ```text
-usage: td_auto_add.py [-h] --desc DESC --when WHEN [--status STATUS]
-                      [--no-write]
-
-Auto-add next TD row to TECH_DEBT.md
+usage: plan_td_update.py [-h] [--plan PLAN] [--day DAY] [--add [ADD ...]]
+                         [--resolve [RESOLVE ...]]
 
 options:
-  -h, --help       show this help message and exit
-  --desc DESC      Description column text
-  --when WHEN      e.g., "Day 10"
-  --status STATUS  Pending | In-Progress | Resolved (default: Pending)
-  --no-write       Do not modify TECH_DEBT.md; print row for copy/paste
+  -h, --help            show this help message and exit
+  --plan PLAN
+  --day DAY             Day number to update (default: current_day)
+  --add [ADD ...]       TD ids to add under tech_debt_add
+  --resolve [RESOLVE ...]
+                        TD ids to add under tech_debt_resolve
 ```
 
 ### `tools/tech_debt.py`
@@ -133,29 +128,21 @@ _Summary:_
 
 CourtIQ Tech Debt CLI
 
-Automations for TECH_DEBT.md:
-- Parse/update the main Markdown table
-- Resolve/add items quickly
-- Sync with meta/plan.yml (resolve/add for current day)
+Subcommands:
+  list                List TD rows (raw table lines)
+  set-status          Set a TD status (Pending | In-Progress 🔧 | ✅ Resolved)
+  resolve             Convenience alias for set-status <id> "✅ Resolved"
+  add                 Add a new TD row (auto-increment id)
+  sync                Align TECH_DEBT.md with meta/plan.yml (current_day)
 
-Usage examples:
-  # View table
-  python tools/tech_debt.py list
-
-  # Resolve a TD
-  python tools/tech_debt.py resolve TD2
-
-  # Add a new TD row
-  python tools/tech_debt.py add --id TD19 --desc "Normalize error envelope to arrays" --when "Day 11" --status Pending
-
-  # Set explicit status
-  python tools/tech_debt.py set-status TD2 Resolved
-
-  # Sync from plan.yml (applies tech_debt_resolve/add for current_day)
-  python tools/tech_debt.py sync --plan meta/plan.yml
-
-  # Preview changes only
-  python tools/tech_debt.py sync --dry-run
+Highlights:
+- `add` always auto-increments the id from the last table row (TDn -> TDn+1)
+- `add` supports --preview (with optional --yes confirm), and --no-write
+- Status normalization (accepts common variants for in-progress/resolved)
+- `sync`:
+    * For plan.days[current_day].tech_debt_resolve[] → mark as ✅ Resolved
+    * For plan.days[current_day].tech_debt_add[]     → ensure present (Pending)
+- Emits NEW_TD_ID=TD## after a successful `add`
 
 **`--help` output:**
 
@@ -169,7 +156,7 @@ positional arguments:
     list                List TD rows
     set-status          Set a TD status (Pending, In-Progress, ✅ Resolved)
     resolve             Mark a TD as ✅ Resolved
-    add                 Add a new TD row
+    add                 Add a new TECH_DEBT row (auto-increment id)
     sync                Align TECH_DEBT.md with meta/plan.yml (current_day)
 
 options:
@@ -284,4 +271,4 @@ Examples:
   scripts/open_pr.sh "Day 10: Validation polish"
 ```
 ---
-_Generated on 2025-08-17T05:37:25_
+_Generated on 2025-08-17T14:31:31_
