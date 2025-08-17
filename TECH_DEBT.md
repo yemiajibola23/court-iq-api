@@ -26,6 +26,8 @@ This file tracks known technical debt and when we plan to address it (aligned to
 | TD19 | Standardize UUID usage across all endpoints (create, read, delete) for consistency                                                                     | Day 15          | Pending   |
 | TD20 | Plan for introducing threading lock or concurrency-safe patterns before DB migration                                                                  | Day 14          | Pending   |
 | TD21 | Transactional delete pipeline: cascade deletes (e.g., diagrams, storage blobs, worker jobs)                                         | Day 16                  | Pending   |
+| TD22 | GitHub Action: promote plan.yml current_day on merge | Day | Pending |
+| TD23 | Add live CI badges wired to GHA (tests, docs-refresh, coverage) | Day | Pending |
 
 ---
 
