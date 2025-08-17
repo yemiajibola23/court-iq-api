@@ -44,6 +44,12 @@ This handbook is the **map** of our tooling and automation. Each section is shor
 - ➡️ See: (to be added) `` (auto-generated)
 - ➡️ See: [`docs/SCRIPTS.md`](SCRIPTS.md)
 
+**Refreshing `docs/SCRIPTS.md`**
+
+- On commit, a pre-commit hook checks the generated scripts doc **without writing**.
+- If it fails, run: `make docs-refresh && git add docs/SCRIPTS.md`
+- The check ignores the timestamp footer; it only fails on real content changes.
+
 
 ## Validators
 - **What:** `tools/validate_structure.py` + `tools/validate_plan.py`
