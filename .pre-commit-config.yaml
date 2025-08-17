@@ -15,3 +15,26 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit]
+
+      - id: tech-debt-sync-check
+        name: tech-debt sync (dry-run)
+        entry: python tools/tech_debt.py sync --dry-run
+        language: system
+        pass_filenames: false
+        files: ^(TECH_DEBT\.md|meta/plan\.yml)$
+      
+      - id: docs-refresh
+        name: rebuild SCRIPTS.md (check)
+        entry: python
+        language: system
+        pass_filenames: false
+        files: ^(tools/|scripts/)
+        args:
+          - tools/docgen_scripts.py
+          - --out
+          - docs/SCRIPTS.md
+          - --check
+          - --repo-url
+          - https://github.com/yemiajibola23/court-iq-api
+          - --default-branch
+          - dev

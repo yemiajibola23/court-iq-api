@@ -2,7 +2,10 @@
 from __future__ import annotations
 import sys, glob
 from pathlib import Path
-import yaml  # pip install pyyaml
+import yaml  
+import argparse, sys
+
+DESC = """Validate required repo structure and paths. Globs are satisfied if at least one match exists."""
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "meta" / "project_structure.yml"
@@ -103,4 +106,6 @@ def main():
             print("  -", f)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=DESC, add_help=True)
+    parser.parse_args()
+    sys.exit(main())

@@ -33,8 +33,10 @@ uvicorn app.main:app --reload --port 8000
 ## Endpoints (v0)
 
 - `GET /health` → `{"ok": true}`
-- `POST /v1/plays` → `{"playId": "<uuid>"}`  
-  _Body_: `{"title": "Test Play", "video_path": "gs://bucket/plays/demo/raw.mp4"}`
+- `POST /v1/plays` → create new play (returns UUID)
+- `GET /v1/plays/{id}` → fetch single play
+- `GET /v1/plays/` → list plays with **cursor pagination + title filter**
+- `DELETE /v1/plays/{id}` → delete play by ID
 
 > Note: v0 returns a UUID only; Firestore persistence and background processing land in the next slice.
 
@@ -49,17 +51,26 @@ requirements.txt
 pytest.ini           # adds repo root to PYTHONPATH
 ```
 
-## Dev scripts (suggested)
+## Development Workflow
 
-You can use these one-liners or add a `Makefile` later:
+This repo uses **automation helpers** to keep docs, roadmap, and code aligned:
 
-```bash
-# start dev
-uvicorn app.main:app --reload --port 8000
+-   **Pre-commit hooks**\
+    Run automatically on commit. Includes `docs-refresh` which keeps `docs/SCRIPTS.md` up-to-date with stable timestamps.\
+    Install with:
 
-# run tests
-pytest -q
-```
+    ```bash
+    pre-commit install
+    ```
+
+-   **Validators**
+
+    -   `tools/validate_structure.py` → checks repo layout + docs alignment
+
+    -   `tools/validate_plan.py` → ensures `ROADMAP.md` ↔ `plan.yml` consistency
+
+-   **Daily Contributor Flow**\
+    See <CONTRIBUTING.md> for branch naming, commit style, PR checklist, and troubleshooting.
 
 ## Python version pin
 
@@ -70,7 +81,7 @@ This project targets **Python 3.12** because `pydantic-core`’s Rust binding (P
   ```
   3.12.5
   ```
-## API
+## API Examples
 
 ### POST `/v1/plays`
 
@@ -248,3 +259,11 @@ Before you start, please read our [Contributing Guidelines](CONTRIBUTING.md) and
 
 - **Pydantic build error on 3.13**  
   Use Python **3.12.x** (e.g., `pyenv local 3.12.5`), recreate `.venv`, reinstall deps.
+
+- **Docs-refresh keeps failing**
+  Run:
+  ```bash
+  pre-commit clean
+  pre-commit install
+  pre-commit run docs-refresh --all-files
+  ```

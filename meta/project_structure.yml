@@ -15,7 +15,7 @@ project:
 
   required_files:
     - README.md
-    - docs/TECH_DEBT.md
+    - TECH_DEBT.md
     - meta/plan.yml
     - meta/project_structure.yml
     - app/routers/plays.py

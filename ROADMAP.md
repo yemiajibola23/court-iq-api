@@ -326,3 +326,32 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 🪄 perf: profile slow endpoints and optimize N+1s
 - [ ] 🧹 chore: archive tech-debt items not in scope
 - [ ] 📝 docs: “What’s next” and contribution welcome notes
+
+
+## Meta Improvements & Tooling
+
+### Pre-commit & Validation
+- ✅ Integrated `docs-refresh` into pre-commit with stable timestamps (SCRIPTS.md no longer drifts).
+- ✅ Added `pre-commit clean + reinstall` troubleshooting step to CONTRIBUTING.
+- ✅ Clarified role of `validate_plan.py` and `validate_structure.py` in both pre-commit and CI.
+
+### Documentation & Conventions
+- ✅ Expanded CONTRIBUTING.md:
+  - Branch naming (`day#-feature`).
+  - Commit messages (Conventional Commits + emojis).
+  - PR template requiring roadmap objective + tech debt resolution.
+- ✅ Added daily flow checklist for contributors (update plan.yml, roadmap, tech debt → validate → commit → PR).
+- ✅ Added troubleshooting guide for common validator/pre-commit errors.
+
+### Planning Alignment
+- ✅ Reinforced `meta/plan.yml` as the single source of truth (`current_day` must match roadmap).
+- ✅ Locked down ROADMAP ↔ TECH_DEBT ↔ Plan sync rules (objectives must match exactly; TD resolved/added must be documented).
+- ✅ Documented hybrid dev flow in CONTRIBUTING (validators + pre-commit + CI).
+- ✅ Ensured only **today’s day** is validated, future days are flexible.
+
+### Impact
+These meta improvements:
+- Increase **consistency** across commits, branches, and PRs.
+- Enforce **automation** via validators and pre-commit hooks.
+- Improve **clarity** for contributors by making expectations explicit.
+- Enhance **scalability** by preventing roadmap/tech debt drift as the project grows.
