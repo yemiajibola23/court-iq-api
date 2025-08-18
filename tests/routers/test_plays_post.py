@@ -53,12 +53,18 @@ def test_create_play_422_missing_video_path(client, assert_422_field):
    
     assert_422_field(res, "video_path")
 
-def test_create_play_422_ftp_scheme_rejected(client, assert_422_field):
-    """video_path uses ftp:// → 422.video_path"""
-    payload = {"title": "Valid", "video_path": "ftp://server/clip.mp4"}
-    res = client.post("/v1/plays", json=payload)
+def test_create_play_rejects_non_http_or_https_schemes(client, assert_422_field):
+    """video_path uses non http(s) → 422.video_path"""
+    bad_urls = [
+        "ftp://example.com/clip.mp4",
+        "file:///tmp/clip.mp4",
+        "gs://bucket/clip.mp4"
+    ]
     
-    assert_422_field(res, "video_path")
+    for bad_url in bad_urls:
+        res = client.post("/v1/plays", json= {"title": "Valid", "video_path": bad_url })
+        assert_422_field(res, "video_path")
+    
 
 @pytest.mark.skip(reason="planned Day 12: invalid types on upload")
 def test_create_play_422_unsupported_extension_avi(): ...
