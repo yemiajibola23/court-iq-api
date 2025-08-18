@@ -28,10 +28,18 @@ def get_play(id: str):
 
 @router.get("/")
 def list_plays(
-    limit: int = Query(10, ge=1, le=100),
+    limit: Optional[int] = Query(None),
     cursor: Optional[str] = None, 
     title: Optional[str] = None
 ):
+    
+    if limit is None:
+        limit = 10
+    elif limit < 1:
+        limit = 1
+    elif limit > 100:
+        limit = 100
+        
     try:
         items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
     except ValueError:
