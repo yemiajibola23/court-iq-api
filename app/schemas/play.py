@@ -32,12 +32,16 @@ class PlayCreateRequest(BaseModel):
     def validate_video_path(cls, v: str) -> str:
         v = v.strip()
         
-        # 1. Accept http(s) URLs
+        # 1. Acccept length ≤ 2048 chars
+        if len(v) > 2048:
+            raise ValueError("Video path must be ≤ 2048 chars")
+        
+        # 2. Accept http(s) URLs
         parsed = urlparse(v)
         if parsed.scheme in {"http", "https"} and parsed.netloc:
             return v
 
-        # 2) Accept file-like paths (Unix abs, Windows abs, or relative)
+        # 3. Accept file-like paths (Unix abs, Windows abs, or relative)
         if RE_UNIX_ABS.match(v) or RE_WIN_ABS.match(v) or RE_REL.match(v):
             return v
         

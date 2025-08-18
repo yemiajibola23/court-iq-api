@@ -3,11 +3,35 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.repositories.plays_repo import clear_store
 from typing import Callable, List, Dict, Optional
+import uuid
 
 @pytest.fixture(scope="function")
 def client():
     # fresh client per test to avoid leaking in-memory state across tests
     return TestClient(app)
+
+@pytest.fixture(scope="function")
+def assert_201_field():
+    def _assert(res):
+        assert res.status_code == 201
+        data = res.json()
+        assert "playId" in data
+        
+        # Validate UUID-ish value (FastAPI serializes UUID -> string)
+        uuid_val = data["playId"]
+        uuid.UUID(uuid_val)
+    
+        assert "Location" in res.headers
+        # Location header
+        location = res.headers["Location"]
+        assert location.startswith("/v1/plays/")
+
+        # The id in Location should equal the JSON playId
+        loc_id = location.rsplit("/", 1)[-1]
+        assert loc_id == uuid_val
+        
+    return _assert
+
 
 @pytest.fixture
 def assert_422_field():
