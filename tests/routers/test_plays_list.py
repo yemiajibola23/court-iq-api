@@ -35,7 +35,7 @@ def test_list_plays_pagination_happy_path(client, seed_many_plays):
     assert b3.get("nextCursor") in (None, )
     
 def test_list_plays_title_prefix_filter_happy_path(client, seed_many_plays):
-    _ = seed_many_plays([
+    seed_many_plays([
         {"title": "Alpha Cut"},
         {"title": "Alpha Spain"},
         {"title": "Bravo Ghost"},
@@ -126,3 +126,16 @@ def test_list_plays_bad_cursor_with_filter_returns_400(client, seed_many_plays):
     assert r.status_code == 400
     body = r.json()
     assert "detail" in body and "Invalid cursor" in body["detail"]
+
+def test_list_plays_sets_default_limit_of_10(client, seed_many_plays):
+    seed_many_plays([{f"title": "Alpha Cut {i:02d}"} for i in range(12)])
+    
+    r1 = client.get("/v1/plays")
+    assert r1.status_code == 200
+
+    b1 = r1.json()
+    assert len(b1["data"]) == 10
+    assert b1["nextCursor"] is not None
+
+    last_id_on_page = b1["data"][-1]["id"]
+    assert b1["nextCursor"] == last_id_on_page
