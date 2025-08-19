@@ -200,3 +200,43 @@ def test_list_plays_clamps_limit_low_to_1(client, seed_many_plays):
     b2 = r2.json()
     assert len(b2["data"]) == 1
     assert b2["nextCursor"] is not None
+    
+def test_list_plays_has_more_returns_true_when_more_pages(client, seed_many_plays):
+    seed_many_plays({"title": f"Alpha Cut {i:03d}"} for i in range(15))
+    
+    r = client.get("/v1/plays?limit=10")
+    assert r.status_code == 200
+    
+    b = r.json()
+    assert len(b["data"]) == 10
+    assert b["nextCursor"] is not None 
+    assert b["hasMore"] is True
+    
+def test_list_plays_has_more_returns_false_when_on_last_page(client, seed_many_plays):
+    seed_many_plays({"title": f"Alpha Cut {i:03d}"} for i in range(15))
+    
+    r1 = client.get("/v1/plays?limit=10")
+    assert r1.status_code == 200
+    
+    b1 = r1.json()
+    assert len(b1["data"]) == 10
+    nextCursor =b1["nextCursor"]
+    
+    r2 = client.get(f"/v1/plays?limit=10&cursor={nextCursor}")
+    assert r2.status_code == 200
+    
+    b2 = r2.json()
+    assert len(b2["data"]) == 5
+    assert b2["nextCursor"] == None
+    assert b2["hasMore"] == False
+
+def test_list_has_more_respects_clamp_limit(client, seed_many_plays):
+    seed_many_plays({"title": f"Alpha Cut {i:03d}"} for i in range(120))
+    
+    r = client.get("/v1/plays?limit=9999") # clamps to 100
+    assert r.status_code == 200
+    
+    b = r.json()
+    assert len(b["data"]) == 100
+    assert b["nextCursor"] is not None 
+    assert b["hasMore"] is True

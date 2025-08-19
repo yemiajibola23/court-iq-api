@@ -46,8 +46,9 @@ def list_plays(
         raise HTTPException(status_code=400, detail="Invalid cursor")
     
     dtos: List[PlayRead] = [to_play_dto(p) for p in items]
+    hasMore = next_cursor is not None
     
-    return {"data": dtos, "nextCursor": next_cursor}
+    return {"data": dtos, "nextCursor": next_cursor, "hasMore": hasMore}
 
 @router.delete("/{id}")
 def delete_play(id: str):
