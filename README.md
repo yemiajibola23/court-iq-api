@@ -96,7 +96,11 @@ Create a new play.
 ```
 **Validation**
 - `title`: required, non-empty (whitespace trimmed, 1–120 chars).
-- `video_path`: required; must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...).
+- `video_path`: required; 
+  - must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...)
+  - Max length: 2048
+  - extensions allowed: mp4, mov, m4v, webm
+
 
 **Response**
 - 201 Created
@@ -127,7 +131,7 @@ curl -i -X POST http://127.0.0.1:8000/v1/plays \
 http POST :8000/v1/plays title="  " video_path="https://example.com/clip.mp4"
 ```
 
-### GET /v1/plays/{id}
+### GET `/v1/plays/{id}`
 
 Returns a Play DTO.
 
@@ -165,7 +169,8 @@ http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
   "data": [
     { "id": "f7b3…", "title": "Alpha Cut", "video_path": "https://…" }
   ],
-  "nextCursor": "3c9e…"  // null when no more results
+  "nextCursor": "3c9e…",  // null when no more results
+  "hasMore": true 
 }
 ```
 
@@ -181,7 +186,8 @@ curl -s 'http://localhost:8000/v1/plays?limit=2'
     {"id":"…","title":"Alpha Cut","video_path":"…"},
     {"id":"…","title":"Alpha Spain","video_path":"…"}
   ],
-  "nextCursor":"<id-of-Alpha-Spain>"
+  "nextCursor":"<id-of-Alpha-Spain>",
+  "hasMore": false
 }
 
 ```
