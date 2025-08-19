@@ -70,10 +70,28 @@ def test_create_play_201_allows_video_path_at_2048_chars(client, assert_201_fiel
     res = client.post("/v1/plays", json= {"title": "Valid", "video_path": url })
     
     assert_201_field(res)
-    
-@pytest.mark.skip(reason="planned Day 12: invalid types on upload")
-def test_create_play_422_unsupported_extension_avi(): ...
 
+@pytest.mark.parametrize("url", [
+     "https://e.com/clip.avi",
+    "https://e.com/clip.mkv",
+    "https://e.com/clip",
+    "https://e.com/clip.mp4.",
+    "https://e.com/clip.mp4/extra",
+])
+def test_create_play_422_rejects_unsupported_extensions(client, assert_422_field, url):
+    res = client.post("/v1/plays", json={"title": "Valid", "video_path": url})
+    assert_422_field(res, "video_path")
+
+@pytest.mark.parametrize("url", [
+    "https://e.com/c.MP4",
+    "https://e.com/c.mov?x=1#y",
+    "https://e.com/c.m4V",
+    "https://e.com/c.WeBm?token=abc",
+])
+def test_create_play_201_allows_supported_extensions_case_insensitive(client, assert_201_field, url):
+    res = client.post("/v1/plays", json={"title": "Valid", "video_path": url})
+    assert_201_field(res)
+    
 @pytest.mark.skip(reason="planned Day 11: local paths gated by ALLOW_LOCAL_VIDEO_PATHS=false")
 def test_create_play_422_local_file_path_rejected_when_override_off(): ...
 
