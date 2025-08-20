@@ -2,6 +2,7 @@
 
 ## Contents
 - [Python tools](#python-tools)
+  - [tools/day_start.py](#sec-tools-day-start-py)
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
   - [tools/plan_td_update.py](#sec-tools-plan-td-update-py)
@@ -13,6 +14,33 @@
   - [scripts/open_pr.sh](#sec-scripts-open-pr-sh)
 
 ## Python tools
+
+### `tools/day_start.py`
+<a id="sec-tools-day-start-py"></a>
+_Source: [tools/day_start.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/day_start.py)_
+
+_Summary:_
+
+Day Start v2 — streamlines the daily kickoff:
+- Sets meta/plan.yml current_day
+- Ensures ROADMAP.md has Day N section + Objective line (from plan.yml)
+- Creates or checks out the branch (from plan.yml days[].branch if present; else {type}/{desc})
+- Emits a kickoff block and writes notes/day{N}-kickoff.md
+
+**`--help` output:**
+
+```text
+usage: day_start.py [-h] --day DAY
+                    [--type {feat,test,docs,refactor,chore,fix,perf}]
+                    [--desc DESC] [--dry-run]
+
+options:
+  -h, --help            show this help message and exit
+  --day DAY
+  --type {feat,test,docs,refactor,chore,fix,perf}
+  --desc DESC
+  --dry-run
+```
 
 ### `tools/docgen_scripts.py`
 <a id="sec-tools-docgen-scripts-py"></a>
@@ -271,4 +299,4 @@ Examples:
   scripts/open_pr.sh "Day 10: Validation polish"
 ```
 ---
-_Generated on 2025-08-17T14:31:31_
+_Generated on 2025-08-20T13:49:22_

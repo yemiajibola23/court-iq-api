@@ -170,6 +170,22 @@ docs-refresh: ## Regenerate docs/SCRIPTS.md and preview the top
 	@head -n 40 docs/SCRIPTS.md | sed -e 's/^/│ /'
 
 
+# Daily prompts
+TYPE ?= feat
+DESC ?=
+FLAGS ?=
+
+day-start: ## Run to start each day
+	@if [ -z "$(DAY)"]; then \
+		echo "Usage make day-start DAY=11 [TYPE=feat] [DESC=\"...\"] [FLAGS=--dry-run]"; \
+		exit; \
+	fi
+	@echo "→ python tools/day_start.py --day $(DAY) --type $(TYPE) --desc '$(DESC)' $(FLAGS)"
+	@python tools/day_start.py --day $(DAY) \
+	$(if $(TYPE), --type $(TYPE),) \
+	$(if $(DESC), --desc "$(DESC)",) \
+	$(FLAGS)
+
 
 .PHONY: help venv deps hooks test validate check docs td td-sync td-add td-add-yes pr onboard \
-        tour tour-note tour-list tour-open handbook docs-refresh
+        tour tour-note tour-list tour-open handbook docs-refresh day-start
