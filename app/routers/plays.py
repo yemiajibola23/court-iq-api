@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Response, status, HTTPException, Query
+from fastapi import APIRouter, Response, status, HTTPException, Query, Depends
 import uuid
 from typing import Optional, List
 
 from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
-from app.repositories import plays_repo
 from app.utils.mappers import to_play_dto
+from app.deps import get_repo, _singleton_repo
+from app.repositories.plays_repo import PlaysRepository
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
 # TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
@@ -12,14 +13,17 @@ from app.utils.mappers import to_play_dto
 router = APIRouter(prefix="/v1/plays", tags=["plays"])
 
 @router.post("/", response_model=PlayCreateResponse, status_code=status.HTTP_201_CREATED)
-def create_play(payload: PlayCreateRequest, response: Response) -> PlayCreateResponse:
+def create_play(payload: PlayCreateRequest, 
+                response: Response, 
+                plays_repo: PlaysRepository=Depends(get_repo)) -> PlayCreateResponse:
     play = plays_repo.create_play(title=payload.title, video_path=payload.video_path)
 
     response.headers["Location"] = f'/v1/plays/{play.id}'
     return PlayCreateResponse(playId=uuid.UUID(play.id))
 
 @router.get("/{id}")
-def get_play(id: str):
+def get_play(id: str,
+             plays_repo: PlaysRepository=Depends(get_repo)):
     play = plays_repo.get_play(id)
     if not play:
         raise HTTPException(status_code=404, detail="Play not found")
@@ -30,7 +34,8 @@ def get_play(id: str):
 def list_plays(
     limit: Optional[int] = Query(None),
     cursor: Optional[str] = None, 
-    title: Optional[str] = None
+    title: Optional[str] = None,
+    plays_repo: PlaysRepository=Depends(get_repo)
 ):
     
     if limit is None:
@@ -51,7 +56,8 @@ def list_plays(
     return {"data": dtos, "nextCursor": next_cursor, "hasMore": hasMore}
 
 @router.delete("/{id}")
-def delete_play(id: str):
+def delete_play(id: str,
+                plays_repo: PlaysRepository=Depends(get_repo)):
     key = str(id)
     ok = plays_repo.delete_play(key)
     if not ok:

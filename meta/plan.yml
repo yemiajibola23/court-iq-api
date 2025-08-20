@@ -33,7 +33,7 @@ days:
       - "List default/clamp tests (default=10; clamp to [1,100])"
       - "Optional hasMore boolean"
       - "docs: update README examples and error shapes"
-    tech_debt_resolve: []
+    tech_debt_resolve: [TD3, TD13]
     tech_debt_add: []
 
   - day: 11
