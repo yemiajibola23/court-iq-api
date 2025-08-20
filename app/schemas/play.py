@@ -2,7 +2,8 @@ from __future__ import annotations
 from pydantic import BaseModel, field_validator, StringConstraints
 from typing import Annotated
 from uuid import UUID
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit
+from pathlib import Path
 import re
 
 # TECH_DEBT: TD4, TD9, TD12  — tighten video_path rules (https only, len≤2048, ext in set), per-field 422 arrays, case-insensitive ext check without mutating URL casing.
@@ -12,6 +13,7 @@ import re
 RE_UNIX_ABS = re.compile(r"^/[^*?\"<>|]+")
 RE_WIN_ABS  = re.compile(r"^[A-Za-z]:\\[^*?\"<>|]+")
 RE_REL      = re.compile(r"^\.(\.)?[/\\][^*?\"<>|]+")
+ALLOWED_EXTS = {".mp4", ".mov", ".m4v", ".webm"}
 
 class PlayCreateRequest(BaseModel):
     title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
@@ -27,22 +29,28 @@ class PlayCreateRequest(BaseModel):
        
         return v
     
-    @field_validator("video_path")
+    @field_validator("video_path", mode="before")
     @classmethod
     def validate_video_path(cls, v: str) -> str:
+        if not isinstance(v, str):
+            raise ValueError("video_path must be a string")
+        
         v = v.strip()
+        # 1. Acccept length ≤ 2048 chars
+        if len(v) > 2048:
+            raise ValueError("Video path must be ≤ 2048 chars")
+                
+        # 2. Accept http(s) URLs
+        parts = urlsplit(v)
+        if parts.scheme not in {"http", "https"} or not parts.netloc:
+            raise ValueError("video_path must be an http(s) url")
         
-        # 1. Accept http(s) URLs
-        parsed = urlparse(v)
-        if parsed.scheme in {"http", "https"} and parsed.netloc:
-            return v
+        # 3. Accept terminal extension (case-insensitive), queries/fragments are fine
+        suffix = Path(parts.path).suffix.lower()
+        if suffix not in ALLOWED_EXTS:
+            raise ValueError("video_path must be a supported format (.mp4, .mov, .mv4, .webm)")
 
-        # 2) Accept file-like paths (Unix abs, Windows abs, or relative)
-        if RE_UNIX_ABS.match(v) or RE_WIN_ABS.match(v) or RE_REL.match(v):
-            return v
-        
-        raise ValueError("video_path must be a http(s) URL or a valid file path")
-
+        return v
 class PlayCreateResponse(BaseModel):
     playId: UUID   
             

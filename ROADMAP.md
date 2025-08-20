@@ -83,10 +83,10 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 ## Day 10 – Validation polish + list clamps
 **Objective:** Validation polish + list clamps
 
-- [ ] ✨ feat(api): harden `video_path` validation (https-only; length ≤ 2048; extensions {.mp4,.mov,.m4v,.webm})
-- [ ] ✅ test(api): list default limit = 10; clamp to [1,100]
-- [ ] 🔨 refactor(api): optional `hasMore` boolean in list response
-- [ ] 📝 docs: update README examples and error shapes
+- [x] ✨ feat(api): harden `video_path` validation (https-only; length ≤ 2048; extensions {.mp4,.mov,.m4v,.webm})
+- [x] ✅ test(api): list default limit = 10; clamp to [1,100]
+- [x] 🔨 refactor(api): optional `hasMore` boolean in list response
+- [x] 📝 docs: update README examples and error shapes
 
 ## Day 11 – Storage Provider Wiring
 

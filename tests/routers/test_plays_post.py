@@ -3,7 +3,7 @@ import uuid
 
 # TECH_DEBT: TD9 — assert per-field 422 arrays for all validation failures.
 
-def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
+def test_create_play_ok_https_mp4_returns_201_and_location_header(client, assert_201_field):
     """
     Happy path:
       - title: non-empty
@@ -15,22 +15,8 @@ def test_create_play_ok_https_mp4_returns_201_and_location_header(client):
     payload = {"title": "Drop vs. Spain PnR", "video_path":"https://example.com/clip.mp4"}
     res = client.post("/v1/plays", json=payload)
     
-    assert res.status_code == 201
+    assert_201_field(res)
     
-    data = res.json()
-    assert "playId" in data
-    # Validate UUID-ish value (FastAPI serializes UUID -> string)
-    uuid_val = data["playId"]
-    uuid.UUID(uuid_val)
-    
-    # Location header
-    assert "Location" in res.headers
-    location = res.headers["Location"]
-    assert location.startswith("/v1/plays/")
-
-    # The id in Location should equal the JSON playId
-    loc_id = location.rsplit("/", 1)[-1]
-    assert loc_id == uuid_val
 
 def test_create_play_422_empty_title(client, assert_422_field):
     """Empty/whitespace-only title → 422.title"""
@@ -53,16 +39,59 @@ def test_create_play_422_missing_video_path(client, assert_422_field):
    
     assert_422_field(res, "video_path")
 
-def test_create_play_422_ftp_scheme_rejected(client, assert_422_field):
-    """video_path uses ftp:// → 422.video_path"""
-    payload = {"title": "Valid", "video_path": "ftp://server/clip.mp4"}
-    res = client.post("/v1/plays", json=payload)
+def test_create_play_rejects_non_http_or_https_schemes(client, assert_422_field):
+    """video_path uses non http(s) → 422.video_path"""
+    bad_urls = [
+        "ftp://example.com/clip.mp4",
+        "file:///tmp/clip.mp4",
+        "gs://bucket/clip.mp4"
+    ]
     
+    for bad_url in bad_urls:
+        res = client.post("/v1/plays", json= {"title": "Valid", "video_path": bad_url })
+        assert_422_field(res, "video_path")
+
+def test_create_play_422_rejects_video_path_over_2048_chars(client, assert_422_field):
+    prefix = "https://example.com/"
+    ext = ".mp4"
+    n = 2049 - (len(prefix) + len(ext))
+    url = prefix + ("a" * n) + ext
+    
+    res = client.post("/v1/plays", json= {"title": "Valid", "video_path": url })
+    
+    assert_422_field(res, "video_path")   
+
+def test_create_play_201_allows_video_path_at_2048_chars(client, assert_201_field):
+    prefix = "https://example.com/"
+    ext = ".mp4"
+    n = 2048 - (len(prefix) + len(ext))
+    url = prefix + ("a" * n) + ext
+    
+    res = client.post("/v1/plays", json= {"title": "Valid", "video_path": url })
+    
+    assert_201_field(res)
+
+@pytest.mark.parametrize("url", [
+     "https://e.com/clip.avi",
+    "https://e.com/clip.mkv",
+    "https://e.com/clip",
+    "https://e.com/clip.mp4.",
+    "https://e.com/clip.mp4/extra",
+])
+def test_create_play_422_rejects_unsupported_extensions(client, assert_422_field, url):
+    res = client.post("/v1/plays", json={"title": "Valid", "video_path": url})
     assert_422_field(res, "video_path")
 
-@pytest.mark.skip(reason="planned Day 12: invalid types on upload")
-def test_create_play_422_unsupported_extension_avi(): ...
-
+@pytest.mark.parametrize("url", [
+    "https://e.com/c.MP4",
+    "https://e.com/c.mov?x=1#y",
+    "https://e.com/c.m4V",
+    "https://e.com/c.WeBm?token=abc",
+])
+def test_create_play_201_allows_supported_extensions_case_insensitive(client, assert_201_field, url):
+    res = client.post("/v1/plays", json={"title": "Valid", "video_path": url})
+    assert_201_field(res)
+    
 @pytest.mark.skip(reason="planned Day 11: local paths gated by ALLOW_LOCAL_VIDEO_PATHS=false")
 def test_create_play_422_local_file_path_rejected_when_override_off(): ...
 
