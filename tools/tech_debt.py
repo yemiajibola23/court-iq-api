@@ -1,338 +1,459 @@
 #!/usr/bin/env python3
 """
-CourtIQ Tech Debt CLI
+tech_debt.py — manage TECH_DEBT.md rows and (optionally) mirror as ROADMAP subtasks.
 
-Subcommands:
-  list                List TD rows (raw table lines)
-  set-status          Set a TD status (Pending | In-Progress 🔧 | ✅ Resolved)
-  resolve             Convenience alias for set-status <id> "✅ Resolved"
-  add                 Add a new TD row (auto-increment id)
-  sync                Align TECH_DEBT.md with meta/plan.yml (current_day)
+Commands:
+  list                                Show parsed TECH_DEBT rows
+  add --desc ... --when "Day N"       Add a new row (auto TD id) and append a ROADMAP checklist line
+    [--status Pending] [--scope storage] [--no-roadmap] [--preview] [--yes] [--no-write]
+  sync [--day N] [--apply]            Cross-check plan.yml (current day by default) vs ROADMAP vs TECH_DEBT
+    [--scope storage] [--no-roadmap-write] [--no-plan-write]
 
-Highlights:
-- `add` always auto-increments the id from the last table row (TDn -> TDn+1)
-- `add` supports --preview (with optional --yes confirm), and --no-write
-- Status normalization (accepts common variants for in-progress/resolved)
-- `sync`:
-    * For plan.days[current_day].tech_debt_resolve[] → mark as ✅ Resolved
-    * For plan.days[current_day].tech_debt_add[]     → ensure present (Pending)
-- Emits NEW_TD_ID=TD## after a successful `add`
+Row format in TECH_DEBT.md (pipe table):
+  | TD5  | Description here | Day 12 | Pending |
+
+ROADMAP checklist line we write:
+  - [ ] 💳 techdebt(scope): Description here (TD5)
+or (when no scope)
+  - [ ] 💳 techdebt: Description here (TD5)
 """
 
 from __future__ import annotations
+
 import argparse
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
+# Optional dependency: PyYAML for plan.yml
 try:
-    import yaml  # PyYAML
-except Exception:  # pragma: no cover
-    yaml = None
+    import yaml  # type: ignore
+except Exception as e:
+    yaml = None  # We'll error only when sync needs it
+    
 
-TD_FILE = Path("TECH_DEBT.md")
+_NUM_RE = re.compile(r"\d+")
 
-# ---------------------------- Status helpers ---------------------------------
+def _num_from_id(s: str) -> int:
+    """Extract the first integer from an id like 'TD12' or 'D11-3'. Returns 0 if none."""
+    m = _NUM_RE.search(s or "")
+    return int(m.group(0)) if m else 0
 
-_STATUS_MAP = {
-    "pending": "Pending",
-    "in-progress": "In-Progress 🔧",
-    "in_progress": "In-Progress 🔧",
-    "inprogress": "In-Progress 🔧",
-    "in-progress": "In-Progress 🔧",  # protect weird hyphen
-    "resolved": "✅ Resolved",
-    "✅ resolved": "✅ Resolved",
-    "resolved ✅": "✅ Resolved",
-    "✅": "✅ Resolved",
-}
-
-def norm_status(s: str) -> str:
-    key = (s or "").strip().lower()
-    return _STATUS_MAP.get(key, s.strip())
-
-# ----------------------------- File IO ---------------------------------------
-
-def read_lines() -> List[str]:
-    if not TD_FILE.exists():
-        raise FileNotFoundError("TECH_DEBT.md not found at repo root")
-    return TD_FILE.read_text(encoding="utf-8").splitlines()
-
-def write_lines(lines: List[str]) -> None:
-    TD_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-# ------------------------- Table parsing/updating -----------------------------
-
-# Match any 4-column TD table row, regardless of what's in the "When" column
-ROW_RE = re.compile(r'^\|\s*(TD\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*$')
-
-def iter_td_rows(lines: List[str]) -> List[Tuple[int, str]]:
-    """
-    Return [(index, id), ...] for all table rows in order.
-    """
-    out = []
-    for i, ln in enumerate(lines):
-        m = ROW_RE.match(ln)
-        if m:
-            out.append((i, m.group(1)))
-    return out
-
-def last_td_number(lines: List[str]) -> int:
-    """
-    Robustly find the highest TD number by scanning only the first cell.
-    Works even if other columns (like 'When') have unexpected content.
-    """
-    last = 0
-    for ln in lines:
-        m = re.match(r'^\|\s*TD(\d+)\b', ln)
-        if m:
-            n = int(m.group(1))
-            if n > last:
-                last = n
-    return last
-
-def build_row(tdid: str, desc: str, when: str, status: str) -> str:
-    return f"| {tdid} | {desc} | {when} | {status} |"
-
-def find_row_index(lines: List[str], tdid: str) -> Optional[int]:
-    for i, ln in enumerate(lines):
-        m = ROW_RE.match(ln)
-        if m and m.group(1) == tdid:
-            return i
+def _as_int_or_none(value) -> Optional[int]:
+    """Best-effort parse of current_day which may be int/str/None."""
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value.strip())
+        except ValueError:
+            return None
     return None
 
-def replace_status(lines: List[str], tdid: str, new_status: str) -> List[str]:
-    idx = find_row_index(lines, tdid)
-    if idx is None:
-        raise ValueError(f"{tdid} not found in TECH_DEBT.md")
-    m = ROW_RE.match(lines[idx])
-    assert m
-    desc, when = m.group(2), m.group(3)
-    return lines[:idx] + [build_row(tdid, desc, when, new_status)] + lines[idx+1:]
 
-def insert_index_after_table(lines: List[str]) -> int:
-    """
-    Find the index after the last table row (but before the --- divider section).
-    Strategy:
-      - Find the table header separator (line starting with '|------')
-      - Scan forward while lines look like table rows ('| ... |')
-      - Stop before first non-table or a line that starts with '---'
-    """
-    sep = -1
-    for i, ln in enumerate(lines):
-        if ln.strip().startswith("|------"):
-            sep = i
-            break
-    if sep == -1:
-        # No obvious table; append to end
-        return len(lines)
-    j = sep + 1
-    while j < len(lines):
-        s = lines[j].strip()
-        if s.startswith("|"):
-            j += 1
-            continue
-        if s.startswith("---"):
-            break
-        break
-    return j
+# --------------------------------------------------------------------------- #
+# Paths
+# --------------------------------------------------------------------------- #
 
-def preview_context(lines: List[str], idx: int, new_row: str, ctx: int = 2) -> str:
-    start = max(0, idx - ctx)
-    end = min(len(lines), idx + ctx)
-    out = []
-    out.extend(lines[start:idx])
-    out.append(new_row + "   <-- (new)")
-    out.extend(lines[idx:end])
-    return "\n".join(out)
+REPO = Path(__file__).resolve().parents[1]
+TD_FILE = REPO / "TECH_DEBT.md"
+ROADMAP_FILE = REPO / "ROADMAP.md"
+PLAN_FILE = REPO / "meta" / "plan.yml"
 
-# ------------------------------- Commands -------------------------------------
+# --------------------------------------------------------------------------- #
+# Parsing helpers
+# --------------------------------------------------------------------------- #
 
-def cmd_list(_args) -> None:
-    lines = read_lines()
-    # print table lines only for easy scanning
-    printed = False
+ROW_RE = re.compile(
+    r"^\|\s*(TD\d+)\s*\|\s*(.*?)\s*\|\s*(Day\s*\d+)\s*\|\s*(.*?)\s*\|\s*$"
+)
+DAY_HDR_RE = re.compile(r"^##\s+Day\s+(\d+)\s+[–-]\s*")
+
+@dataclass
+class TdRow:
+    tdid: str         # e.g., TD5
+    desc: str
+    when: str         # e.g., Day 12
+    status: str       # e.g., Pending | ✅ Resolved
+
+def read_td_lines() -> List[str]:
+    if not TD_FILE.exists():
+        raise FileNotFoundError(f"{TD_FILE} not found")
+    return TD_FILE.read_text(encoding="utf-8").splitlines()
+
+def write_td_lines(lines: List[str]) -> None:
+    TD_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+def parse_rows(lines: List[str]) -> List[TdRow]:
+    rows: List[TdRow] = []
     for ln in lines:
-        if ln.strip().startswith("| TD"):
-            print(ln)
-            printed = True
-    if not printed:
-        print("(no TD rows found)")
+        m = ROW_RE.match(ln)
+        if m:
+            rows.append(TdRow(m.group(1), m.group(2), m.group(3), m.group(4)))
+    return rows
 
-def cmd_set_status(args) -> None:
-    new_status = norm_status(args.status)
-    lines = read_lines()
-    new_lines = replace_status(lines, args.id, new_status)
-    if args.dry_run:
-        print("\n".join(new_lines))
+def next_td_id(rows: List[TdRow]) -> str:
+    mx = 0
+    for r in rows:
+        try:
+            mx = max(mx, int(r.tdid[2:]))
+        except Exception:
+            pass
+    return f"TD{mx + 1}"
+
+def format_row(tdid: str, desc: str, when: str, status: str) -> str:
+    return f"| {tdid} | {desc} | {when} | {status} |"
+
+def find_insert_index_for_row(lines: List[str]) -> int:
+    """
+    Returns the index AFTER the last existing row. If no rows are found,
+    returns the end of file (we do not create headers—assume file has them).
+    """
+    last_row_idx = -1
+    for i, ln in enumerate(lines):
+        if ROW_RE.match(ln):
+            last_row_idx = i
+    return last_row_idx + 1 if last_row_idx >= 0 else len(lines)
+
+# --------------------------------------------------------------------------- #
+# ROADMAP helpers
+# --------------------------------------------------------------------------- #
+
+def roadmap_read_lines() -> List[str]:
+    if not ROADMAP_FILE.exists():
+        raise FileNotFoundError("ROADMAP.md not found at repo root")
+    return ROADMAP_FILE.read_text(encoding="utf-8").splitlines()
+
+def roadmap_write_lines(lines: List[str]) -> None:
+    ROADMAP_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+def roadmap_find_day_block(lines: List[str], day: int) -> Optional[Tuple[int, int]]:
+    """
+    Returns (start, end) indices of the Day block, or None if not present.
+    start points at the '## Day N – ...' header; end is the first next H2 or EOF.
+    """
+    start = None
+    for i, ln in enumerate(lines):
+        m = DAY_HDR_RE.match(ln)
+        if m and int(m.group(1)) == day:
+            start = i
+            break
+    if start is None:
+        return None
+    end = next((j for j in range(start + 1, len(lines)) if lines[j].startswith("## ")), len(lines))
+    return (start, end)
+
+def parse_day_num(when: str) -> Optional[int]:
+    m = re.search(r"(\d+)", when or "")
+    return int(m.group(1)) if m else None
+
+def roadmap_insert_td_subtask(day: int, tdid: str, desc: str, scope: Optional[str] = None, emoji: str = "💳") -> bool:
+    """
+    Insert a TD checklist line at the end of the Day block if not already present.
+
+    Line format:
+      - [ ] 💳 techdebt(scope): <desc> (TD#)
+      - [ ] 💳 techdebt: <desc> (TD#)                # when scope missing
+    """
+    lines = roadmap_read_lines()
+    block = roadmap_find_day_block(lines, day)
+    if block is None:
+        # Do not silently create a new Day section
+        return False
+    start, end = block
+
+    # If the ID already appears in the Day block, skip
+    id_pat = re.compile(rf"(?<!\w)\(?{re.escape(tdid)}\)?(?!\w)")
+    for j in range(start, end):
+        if id_pat.search(lines[j]):
+            return False
+
+    scope_part = f"techdebt({scope})" if scope else "techdebt"
+    new_line = f"- [ ] {emoji} {scope_part}: {desc} ({tdid})"
+
+    # Insert just before the Day block end, keeping a blank spacer if needed
+    insert_at = end
+    k = end - 1
+    while k > start and lines[k].strip() == "":
+        k -= 1
+    insert_at = k + 1
+    # Ensure a blank line before the new checklist item for readability
+    if insert_at == start + 1 or (insert_at - 1 < len(lines) and lines[insert_at - 1].strip() != ""):
+        lines.insert(insert_at, "")
+        insert_at += 1
+    lines.insert(insert_at, new_line)
+
+    roadmap_write_lines(lines)
+    return True
+
+def roadmap_collect_td_ids_for_day(day: int) -> List[str]:
+    """Return all TD ids (e.g., ['TD1','TD5']) present in the Day block checklist."""
+    lines = roadmap_read_lines()
+    block = roadmap_find_day_block(lines, day)
+    if block is None:
+        return []
+    start, end = block
+    ids: set[str] = set()
+    for j in range(start, end):
+        for td in re.findall(r"\bTD\d+\b", lines[j]):
+            ids.add(td)
+    return sorted(ids)
+
+# --------------------------------------------------------------------------- #
+# plan.yml helpers
+# --------------------------------------------------------------------------- #
+
+def plan_load() -> dict:
+    if not PLAN_FILE.exists():
+        raise FileNotFoundError(f"{PLAN_FILE} not found")
+    if yaml is None:
+        raise RuntimeError("PyYAML not installed. Install with `pip install pyyaml`.")
+    return yaml.safe_load(PLAN_FILE.read_text(encoding="utf-8"))
+
+def plan_save(data: dict) -> None:
+    assert yaml is not None
+    PLAN_FILE.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding="utf-8")
+
+def plan_current_day(data: dict) -> Optional[int]:
+    return _as_int_or_none(data.get("current_day"))
+
+def plan_find_day_entry(data: dict, day: int) -> Optional[dict]:
+    for d in (data.get("days") or []):
+        try:
+            if int(d.get("day")) == day:
+                return d
+        except Exception:
+            pass
+    return None
+
+def plan_get_tdr_list(day_entry: dict) -> List[str]:
+    lst = (day_entry or {}).get("tech_debt_resolve") or []
+    # normalize to uppercase TD# strings
+    norm = []
+    for x in lst:
+        x = str(x).strip().upper()
+        if not x.startswith("TD"):
+            # allow numeric-only list (e.g., [1,5]) though not recommended
+            try:
+                x = f"TD{int(x)}"
+            except Exception:
+                pass
+        norm.append(x)
+    return sorted(set(norm))
+
+def plan_set_tdr_list(day_entry: dict, ids: List[str]) -> None:
+    # Normalize to uppercase TD ids, then sort numerically by the embedded number.
+    norm = [str(i).strip().upper() for i in ids if str(i).strip()]
+    day_entry["tech_debt_resolve"] = sorted(set(norm), key=_num_from_id)
+
+
+# --------------------------------------------------------------------------- #
+# Commands
+# --------------------------------------------------------------------------- #
+
+def cmd_list(_: argparse.Namespace) -> None:
+    lines = read_td_lines()
+    rows = parse_rows(lines)
+    if not rows:
+        print("(no TECH_DEBT rows found)")
         return
-    write_lines(new_lines)
-    print(f"✅ {args.id} status → {new_status}")
+    # Pretty print minimal table (don’t rewrite the file)
+    print("| ID   | Description | When   | Status    |")
+    print("|------|-------------|--------|-----------|")
+    for r in rows:
+        print(format_row(r.tdid, r.desc, r.when, r.status))
 
-def cmd_resolve(args) -> None:
-    args.status = "✅ Resolved"
-    cmd_set_status(args)
+def cmd_add(args: argparse.Namespace) -> None:
+    # Read existing rows
+    lines = read_td_lines()
+    rows = parse_rows(lines)
+    tdid = next_td_id(rows)
 
-def next_tdid(lines: List[str]) -> str:
-    n = last_td_number(lines)
-    return f"TD{n+1 if n > 0 else 1}"
+    # Construct the new row
+    desc = args.desc.strip()
+    when = args.when.strip()
+    status = args.status.strip()
 
-def cmd_add_auto(args) -> None:
-    """
-    Add a TECH_DEBT row with an automatically incremented id.
+    new_row = format_row(tdid, desc, when, status)
 
-    Options:
-      --preview    Show context and ask to confirm (unless --yes)
-      --yes        Skip confirmation with --preview
-      --no-write   Print row only (and NEW_TD_ID=...) without writing
+    # Preview mode
+    if args.preview and not args.yes and not args.no_write:
+        print("About to add TECH_DEBT row:\n")
+        print(new_row)
+        ans = input("\nProceed? [y/N] ").strip().lower()
+        if ans not in ("y", "yes"):
+            print("Canceled.")
+            return
 
-    Output:
-      Prints NEW_TD_ID=TD## on success (for Makefile to capture).
-    """
-    if not args.desc or not args.when:
-        raise SystemExit("--desc and --when are required")
-
-    status = norm_status(args.status or "Pending")
-    lines = read_lines()
-    tdid = next_tdid(lines)
-    new_row = build_row(tdid, args.desc.strip(), args.when.strip(), status)
-
+    # Print-only mode (for pipelines capturing NEW_TD_ID)
     if args.no_write:
         print(new_row)
         print(f"NEW_TD_ID={tdid}")
         return
 
-    ins = insert_index_after_table(lines)
+    # Insert into TECH_DEBT.md after last existing row
+    idx = find_insert_index_for_row(lines)
+    lines.insert(idx, new_row)
+    write_td_lines(lines)
 
-    if args.preview and not args.yes:
-        if not sys.stdin.isatty() or not sys.stdout.isatty():
-            print("Non-interactive session detected; rerun with --yes or without --preview.", file=sys.stderr)
-            raise SystemExit(1)
-        
-        print("\nProposed TECH_DEBT row:\n")
-        print(new_row)
-        print("\nContext preview:\n")
-        print(preview_context(lines, ins, new_row))
+    # Attempt to mirror as a ROADMAP checklist line (unless disabled)
+    day_num = parse_day_num(when)
+    if day_num is not None and not args.no_roadmap:
         try:
-            resp = input("\nProceed to insert? [y/N]: ").strip().lower()
-        except EOFError:
-            resp = ""
-        if resp not in ("y", "yes"):
-            print("Aborted. Nothing written.")
-            raise SystemExit(1)
+            added = roadmap_insert_td_subtask(
+                day=day_num,
+                tdid=tdid,
+                desc=desc,
+                scope=args.scope,
+            )
+            if added:
+                print(f"🧾 Added to ROADMAP Day {day_num}: {tdid}")
+        except FileNotFoundError:
+            # ROADMAP not present; silently ignore
+            pass
 
-    out = lines[:ins] + [new_row] + lines[ins:]
-    write_lines(out)
-
+    # Final output (keep for Makefile capture)
     print(f"✅ Added {tdid} to TECH_DEBT.md")
     print(new_row)
     print(f"NEW_TD_ID={tdid}")
 
-def cmd_sync(args) -> None:
+def cmd_sync(args: argparse.Namespace) -> None:
     """
-    Align TECH_DEBT.md with meta/plan.yml (current_day):
-      - For `tech_debt_resolve`: mark those IDs as ✅ Resolved
-      - For `tech_debt_add`: ensure those IDs exist; if missing, add as Pending
+    Cross-check plan.yml (tech_debt_resolve) vs ROADMAP (today's Day) vs TECH_DEBT table.
+
+    Default day = plan.yml.current_day (override with --day).
+    Prints a report; with --apply, updates ROADMAP and/or plan.yml.
     """
-    if yaml is None:
-        raise SystemExit("PyYAML not installed; cannot read plan.yml")
+    # Load TECH_DEBT
+    td_lines = read_td_lines()
+    td_rows = parse_rows(td_lines)
+    td_by_id: Dict[str, TdRow] = {r.tdid.upper(): r for r in td_rows}
 
-    plan_path = Path(args.plan)
-    if not plan_path.exists():
-        raise SystemExit(f"{plan_path} not found")
+    # Load plan.yml
+    plan = plan_load()
+    day = args.day or plan_current_day(plan)
+    if not day:
+        print("❌ Could not determine day (use --day or set current_day in plan.yml).", file=sys.stderr)
+        sys.exit(1)
 
-    plan = yaml.safe_load(plan_path.read_text(encoding="utf-8"))
-    current_day = int(plan.get("current_day", 0))
-    days = plan.get("days", [])
-    day_block = next((d for d in days if int(d.get("day", -1)) == current_day), None)
+    day_entry = plan_find_day_entry(plan, day)
+    if not day_entry:
+        print(f"❌ No entry for Day {day} in plan.yml.", file=sys.stderr)
+        sys.exit(1)
 
-    if not day_block:
-        print(f"(no day block for Day {current_day} in plan)")
-        return
+    plan_tdr = set(plan_get_tdr_list(day_entry))
 
-    want_resolve: List[str] = list(day_block.get("tech_debt_resolve", []) or [])
-    want_add: List[str] = list(day_block.get("tech_debt_add", []) or [])
+    # Collect ROADMAP TD ids for this day
+    roadmap_ids = set(roadmap_collect_td_ids_for_day(day))
 
-    lines = read_lines()
-    changed = False
+    # Compare sets
+    missing_in_roadmap = sorted(plan_tdr - roadmap_ids)  # present in plan, not listed in today's ROADMAP
+    missing_in_plan = sorted(roadmap_ids - plan_tdr)     # present in ROADMAP, not present in plan
+    resolved_now = sorted(i for i in plan_tdr if td_by_id.get(i, TdRow(i, "", "", "")).status.strip().startswith("✅"))
 
-    # 1) Ensure all "add" items exist (as Pending) – if missing, append minimal rows.
-    for tdid in want_add:
-        idx = find_row_index(lines, tdid)
-        if idx is None:
-            # append a minimal placeholder row at the end of the table (When = Day <current_day>)
-            placeholder = build_row(tdid, f"(from plan Day {current_day})", f"Day {current_day}", "Pending")
-            ins = insert_index_after_table(lines)
-            lines = lines[:ins] + [placeholder] + lines[ins:]
-            changed = True
+    print(f"Day {day} tech-debt sync report")
+    print("----------------------------------------------------------------")
+    print(f"Plan wants to resolve: {', '.join(sorted(plan_tdr)) or '(none)'}")
+    print(f"ROADMAP lists:         {', '.join(sorted(roadmap_ids)) or '(none)'}")
+    print(f"Resolved in table:     {', '.join(resolved_now) or '(none)'}")
+    print()
+    if missing_in_roadmap:
+        print(f"• Missing in ROADMAP (will add if --apply): {', '.join(missing_in_roadmap)}")
+    if missing_in_plan:
+        print(f"• Missing in plan.yml (will add if --apply): {', '.join(missing_in_plan)}")
+    if not missing_in_plan and not missing_in_roadmap:
+        print("• ROADMAP and plan.yml are aligned for TD ids.")
 
-    # 2) Mark all "resolve" items as ✅ Resolved
-    for tdid in want_resolve:
-        idx = find_row_index(lines, tdid)
-        if idx is None:
-            # If the row doesn't exist, create it as resolved so docs remain truthful.
-            placeholder = build_row(tdid, f"(resolved via plan Day {current_day})", f"Day {current_day}", "✅ Resolved")
-            ins = insert_index_after_table(lines)
-            lines = lines[:ins] + [placeholder] + lines[ins:]
-            changed = True
-        else:
-            m = ROW_RE.match(lines[idx])
-            assert m
-            current_status = m.group(4).strip()
-            if current_status != "✅ Resolved":
-                lines = replace_status(lines, tdid, "✅ Resolved")
-                changed = True
+    # Apply changes if requested
+    if args.apply:
+        wrote_roadmap = False
+        wrote_plan = False
 
-    if args.dry_run:
-        if changed:
-            print("\n".join(lines))
-        else:
-            print("(no changes needed)")
-        return
+        if missing_in_roadmap and not args.no_roadmap_write:
+            for tdid in missing_in_roadmap:
+                row = td_by_id.get(tdid)
+                desc = row.desc if row else tdid
+                try:
+                    added = roadmap_insert_td_subtask(
+                        day=day,
+                        tdid=tdid,
+                        desc=desc,
+                        scope=args.scope,
+                    )
+                    wrote_roadmap = wrote_roadmap or added
+                except FileNotFoundError:
+                    print("⚠️  ROADMAP.md not found; skipping ROADMAP writes.", file=sys.stderr)
+                    break
 
-    if changed:
-        write_lines(lines)
-        print("✅ TECH_DEBT.md updated from plan")
-    else:
-        print("✅ Already in sync with plan")
+        if missing_in_plan and not args.no_plan_write:
+            new_ids = sorted(set(plan_tdr) | set(missing_in_plan), key=_num_from_id)
+            plan_set_tdr_list(day_entry, new_ids)
+            plan_save(plan)
+            wrote_plan = True
 
-# ------------------------------- CLI wiring -----------------------------------
+        if wrote_roadmap:
+            print(f"🧾 Added to ROADMAP Day {day}: {', '.join(missing_in_roadmap)}")
+        if wrote_plan:
+            print(f"🗂  Updated plan.yml Day {day} tech_debt_resolve: {', '.join(plan_get_tdr_list(day_entry))}")
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="CourtIQ Tech Debt CLI")
-    sub = ap.add_subparsers(dest="cmd", required=True)
+        if not wrote_plan and not wrote_roadmap:
+            print("Nothing to apply.")
 
-    sp = sub.add_parser("list", help="List TD rows")
-    sp.set_defaults(func=cmd_list)
+# --------------------------------------------------------------------------- #
+# CLI
+# --------------------------------------------------------------------------- #
 
-    sp = sub.add_parser("set-status", help="Set a TD status (Pending, In-Progress, ✅ Resolved)")
-    sp.add_argument("id", help="e.g., TD2")
-    sp.add_argument("status", help="Pending | In-Progress | ✅ Resolved")
-    sp.add_argument("--dry-run", action="store_true", help="Print file with changes instead of writing")
-    sp.set_defaults(func=cmd_set_status)
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Manage TECH_DEBT.md (and optional ROADMAP checklist lines).")
+    sub = p.add_subparsers(dest="cmd", required=True)
 
-    sp = sub.add_parser("resolve", help="Mark a TD as ✅ Resolved")
-    sp.add_argument("id", help="e.g., TD2")
-    sp.add_argument("--dry-run", action="store_true", help="Print file with changes instead of writing")
-    sp.set_defaults(func=cmd_resolve)
+    sp_list = sub.add_parser("list", help="List rows from TECH_DEBT.md")
+    sp_list.set_defaults(func=cmd_list)
 
-    # always-auto "add"
-    sp = sub.add_parser("add", help="Add a new TECH_DEBT row (auto-increment id)")
-    sp.add_argument("--desc", required=True, help="Description")
-    sp.add_argument("--when", required=True, help='When to Address, e.g., "Day 12"')
-    sp.add_argument("--status", default="Pending", help='Pending | In-Progress | ✅ Resolved')
-    sp.add_argument("--preview", action="store_true", help="Show context and ask to confirm")
-    sp.add_argument("--yes", action="store_true", help="Skip confirmation when --preview is used")
-    sp.add_argument("--no-write", action="store_true", help="Print the row only; do not write the file")
-    sp.set_defaults(func=cmd_add_auto)
+    sp_add = sub.add_parser(
+        "add",
+        help="Add a new TECH_DEBT row (auto-increment id) and append a ROADMAP checklist line",
+    )
+    sp_add.add_argument("--desc", required=True, help="Description of the tech debt")
+    sp_add.add_argument("--when", required=True, help='When to address, e.g., "Day 11"')
+    sp_add.add_argument("--status", default="Pending", help='Status: Pending | In-Progress | ✅ Resolved')
+    sp_add.add_argument("--scope", default=None, help='Optional scope for ROADMAP line, e.g., "storage"')
+    sp_add.add_argument("--no-roadmap", action="store_true", help="Skip writing the ROADMAP checklist line")
+    sp_add.add_argument("--preview", action="store_true", help="Show the row and ask to confirm")
+    sp_add.add_argument("--yes", action="store_true", help="Auto-confirm when --preview is used")
+    sp_add.add_argument("--no-write", action="store_true", help="Print the row and NEW_TD_ID only (no file changes)")
+    sp_add.set_defaults(func=cmd_add)
 
-    sp = sub.add_parser("sync", help="Align TECH_DEBT.md with meta/plan.yml (current_day)")
-    sp.add_argument("--plan", default="meta/plan.yml", help="Path to plan.yml")
-    sp.add_argument("--dry-run", action="store_true", help="Print file with changes instead of writing")
-    sp.set_defaults(func=cmd_sync)
+    sp_sync = sub.add_parser(
+        "sync",
+        help="Cross-check plan.yml (tech_debt_resolve) vs today's ROADMAP vs TECH_DEBT; optionally apply fixes",
+    )
+    sp_sync.add_argument("--day", type=int, help="Day number to sync (defaults to plan.yml current_day)")
+    sp_sync.add_argument("--apply", action="store_true", help="Apply changes (write ROADMAP and/or plan.yml)")
+    sp_sync.add_argument("--scope", default=None, help='Scope to include on new ROADMAP TD lines, e.g., "storage"')
+    sp_sync.add_argument("--no-roadmap-write", action="store_true", help="Do not modify ROADMAP.md")
+    sp_sync.add_argument("--no-plan-write", action="store_true", help="Do not modify plan.yml")
+    sp_sync.set_defaults(func=cmd_sync)
 
-    args = ap.parse_args()
-    args.func(args)
+    return p
+
+def main() -> int:
+    try:
+        parser = build_parser()
+        args = parser.parse_args()
+        args.func(args)
+        return 0
+    except FileNotFoundError as e:
+        print(f"❌ {e}", file=sys.stderr)
+        return 1
+    except RuntimeError as e:
+        print(f"❌ {e}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print("\n(Interrupted)")
+        return 130
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

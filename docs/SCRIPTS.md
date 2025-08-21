@@ -2,6 +2,7 @@
 
 ## Contents
 - [Python tools](#python-tools)
+  - [tools/commit_effects.py](#sec-tools-commit-effects-py)
   - [tools/day_start.py](#sec-tools-day-start-py)
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
@@ -14,6 +15,20 @@
   - [scripts/open_pr.sh](#sec-scripts-open-pr-sh)
 
 ## Python tools
+
+### `tools/commit_effects.py`
+<a id="sec-tools-commit-effects-py"></a>
+_Source: [tools/commit_effects.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/commit_effects.py)_
+
+_Summary:_
+
+Tick any unchecked checklist line that contains one of the ids (D##-# or TD#) anywhere.
+
+**`--help` output:**
+
+```text
+[commit-effects] ids_to_tick=['D11-2']
+```
 
 ### `tools/day_start.py`
 <a id="sec-tools-day-start-py"></a>
@@ -154,41 +169,40 @@ _Source: [tools/tech_debt.py](https://github.com/yemiajibola23/court-iq-api/blob
 
 _Summary:_
 
-CourtIQ Tech Debt CLI
+tech_debt.py — manage TECH_DEBT.md rows and (optionally) mirror as ROADMAP subtasks.
 
-Subcommands:
-  list                List TD rows (raw table lines)
-  set-status          Set a TD status (Pending | In-Progress 🔧 | ✅ Resolved)
-  resolve             Convenience alias for set-status <id> "✅ Resolved"
-  add                 Add a new TD row (auto-increment id)
-  sync                Align TECH_DEBT.md with meta/plan.yml (current_day)
+Commands:
+  list                                Show parsed TECH_DEBT rows
+  add --desc ... --when "Day N"       Add a new row (auto TD id) and append a ROADMAP checklist line
+    [--status Pending] [--scope storage] [--no-roadmap] [--preview] [--yes] [--no-write]
+  sync [--day N] [--apply]            Cross-check plan.yml (current day by default) vs ROADMAP vs TECH_DEBT
+    [--scope storage] [--no-roadmap-write] [--no-plan-write]
 
-Highlights:
-- `add` always auto-increments the id from the last table row (TDn -> TDn+1)
-- `add` supports --preview (with optional --yes confirm), and --no-write
-- Status normalization (accepts common variants for in-progress/resolved)
-- `sync`:
-    * For plan.days[current_day].tech_debt_resolve[] → mark as ✅ Resolved
-    * For plan.days[current_day].tech_debt_add[]     → ensure present (Pending)
-- Emits NEW_TD_ID=TD## after a successful `add`
+Row format in TECH_DEBT.md (pipe table):
+  | TD5  | Description here | Day 12 | Pending |
+
+ROADMAP checklist line we write:
+  - [ ] 💳 techdebt(scope): Description here (TD5)
+or (when no scope)
+  - [ ] 💳 techdebt: Description here (TD5)
 
 **`--help` output:**
 
 ```text
-usage: tech_debt.py [-h] {list,set-status,resolve,add,sync} ...
+usage: tech_debt.py [-h] {list,add,sync} ...
 
-CourtIQ Tech Debt CLI
+Manage TECH_DEBT.md (and optional ROADMAP checklist lines).
 
 positional arguments:
-  {list,set-status,resolve,add,sync}
-    list                List TD rows
-    set-status          Set a TD status (Pending, In-Progress, ✅ Resolved)
-    resolve             Mark a TD as ✅ Resolved
-    add                 Add a new TECH_DEBT row (auto-increment id)
-    sync                Align TECH_DEBT.md with meta/plan.yml (current_day)
+  {list,add,sync}
+    list           List rows from TECH_DEBT.md
+    add            Add a new TECH_DEBT row (auto-increment id) and append a
+                   ROADMAP checklist line
+    sync           Cross-check plan.yml (tech_debt_resolve) vs today's ROADMAP
+                   vs TECH_DEBT; optionally apply fixes
 
 options:
-  -h, --help            show this help message and exit
+  -h, --help       show this help message and exit
 ```
 
 ### `tools/validate_plan.py`
@@ -299,4 +313,4 @@ Examples:
   scripts/open_pr.sh "Day 10: Validation polish"
 ```
 ---
-_Generated on 2025-08-20T13:49:22_
+_Generated on 2025-08-21T17:55:21_

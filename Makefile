@@ -51,6 +51,7 @@ td-sync: ## Align TECH_DEBT.md with meta/plan.yml for current_day
 
 TD_STATUS ?= Pending
 TD_WHEN ?= Day $(DAY)
+SCOPE ?=
 
 td-add: ## Add TD (preview+confirm) for a specific day AND update plan.yml. Usage: make td-add DAY=12 DESC="..." [STATUS=Pending]
 	@if [ -z "$(DAY)" ]; then echo "❌ Missing DAY (e.g., DAY=12)"; exit 1; fi
@@ -60,6 +61,7 @@ td-add: ## Add TD (preview+confirm) for a specific day AND update plan.yml. Usag
 		--desc "$(DESC)" \
 		--when "Day $(DAY)" \
 		--status "$(TD_STATUS)" \
+		--scope "$(SCOPE)" \
 		--preview ) | tee "$$out_file"; \
 	td=$$( awk -F= '/^NEW_TD_ID=/{print $$2}' "$$out_file" ); rm -f "$$out_file"; \
 	if [ -z "$$td" ]; then echo "❌ Could not detect NEW_TD_ID from output"; exit 1; fi; \
@@ -74,6 +76,7 @@ td-add-yes: ## Add TD (no prompt) for a specific day AND update plan.yml. Usage:
 		--desc "$(DESC)" \
 		--when "$(TD_WHEN)" \
 		--status "$(TD_STATUS)" \
+		--scope "$(SCOPE)" \
 		--yes ); \
 	echo "$$out"; \
 	td=$$( echo "$$out" | awk -F= '/^NEW_TD_ID=/{print $$2}' ); \
