@@ -94,6 +94,12 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 📝 docs: storage configuration matrix (D11-5)
 - [ ] 💳 techdebt(storage): In-memory plays repo instead of persistent storage (SQLite first) (TD1)
 
+- [ ] 💳 techdebt: Normalization rules: don’t mutate URL casing except case-insensitive extension checks (TD12)
+
+- [ ] 💳 techdebt: `video_path` validation gaps: **http(s) only**, **max length 2048**, allowed extensions `{.mp4,.mov,.m4v,.webm}` (TD4)
+
+- [ ] 💳 techdebt: 422 error format should be **per-field arrays** (e.g., `{ "video_path": ["…"] }`) for all validation failures (TD9)
+
 ## Day 12 – Video Upload on Create
 
 - [ ] ✨ feat(api): `POST /v1/plays` supports multipart upload OR external URL (D12-1)
