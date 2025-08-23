@@ -32,8 +32,7 @@ validate: ## Run structure + plan validators
 	@$(ACTIVATE) && python tools/validate_structure.py
 	@$(ACTIVATE) && python tools/validate_plan.py
 
-check: validate test ## Validate + tests (the gate you should run before PR)
-
+pr-check: validate test ## Validate + tests (the gate you should run before PR)
 # ---- Docs & automation -------------------------------------------------------
 
 docs: ## Rebuild scripts reference to docs/SCRIPTS.md
@@ -51,6 +50,7 @@ td-sync: ## Align TECH_DEBT.md with meta/plan.yml for current_day
 
 TD_STATUS ?= Pending
 TD_WHEN ?= Day $(DAY)
+SCOPE ?=
 
 td-add: ## Add TD (preview+confirm) for a specific day AND update plan.yml. Usage: make td-add DAY=12 DESC="..." [STATUS=Pending]
 	@if [ -z "$(DAY)" ]; then echo "❌ Missing DAY (e.g., DAY=12)"; exit 1; fi
@@ -60,6 +60,7 @@ td-add: ## Add TD (preview+confirm) for a specific day AND update plan.yml. Usag
 		--desc "$(DESC)" \
 		--when "Day $(DAY)" \
 		--status "$(TD_STATUS)" \
+		--scope "$(SCOPE)" \
 		--preview ) | tee "$$out_file"; \
 	td=$$( awk -F= '/^NEW_TD_ID=/{print $$2}' "$$out_file" ); rm -f "$$out_file"; \
 	if [ -z "$$td" ]; then echo "❌ Could not detect NEW_TD_ID from output"; exit 1; fi; \
@@ -74,6 +75,7 @@ td-add-yes: ## Add TD (no prompt) for a specific day AND update plan.yml. Usage:
 		--desc "$(DESC)" \
 		--when "$(TD_WHEN)" \
 		--status "$(TD_STATUS)" \
+		--scope "$(SCOPE)" \
 		--yes ); \
 	echo "$$out"; \
 	td=$$( echo "$$out" | awk -F= '/^NEW_TD_ID=/{print $$2}' ); \
@@ -81,10 +83,6 @@ td-add-yes: ## Add TD (no prompt) for a specific day AND update plan.yml. Usage:
 	echo "🆕 Detected $$td — updating meta/plan.yml for Day $(DAY)…"; \
 	$(ACTIVATE) && python tools/plan_td_update.py --day $(DAY) --add $$td; \
 	echo "✅ Added $$td to plan.yml Day $(DAY) (tech_debt_add)"
-
-
-pr: ## Open a PR prefilled from plan.yml (requires gh)
-	@scripts/open_pr.sh "Day $$DAY: $$TITLE"
 
 onboard: ## One-shot setup: venv, dev deps, pre-commit, quick checks
 	@scripts/onboard.sh
@@ -170,6 +168,66 @@ docs-refresh: ## Regenerate docs/SCRIPTS.md and preview the top
 	@head -n 40 docs/SCRIPTS.md | sed -e 's/^/│ /'
 
 
+# Daily prompts
+TYPE ?= feat
+DESC ?=
+FLAGS ?=
 
-.PHONY: help venv deps hooks test validate check docs td td-sync td-add td-add-yes pr onboard \
-        tour tour-note tour-list tour-open handbook docs-refresh
+day-start: ## Run to start each day
+	@if [ -z "$(DAY)"]; then \
+		echo "Usage make day-start DAY=11 [TYPE=feat] [DESC=\"...\"] [FLAGS=--dry-run]"; \
+		exit; \
+	fi
+	@echo "→ python tools/day_start.py --day $(DAY) --type $(TYPE) --desc '$(DESC)' $(FLAGS)"
+	@python tools/day_start.py --day $(DAY) \
+	$(if $(TYPE), --type $(TYPE),) \
+	$(if $(DESC), --desc "$(DESC)",) \
+	$(FLAGS)
+
+# Optional knobs
+EOD_SCOPE ?=           # e.g., storage — forwarded to tech_debt.py sync
+PR_BASE   ?= dev       # default branch
+PR_DRAFT  ?= 1         # set empty to open a non-draft PR
+PR_LABELS ?= day-$(DAY),auto-eod
+PR_REVIEWERS ?=        # comma-separated GitHub handles
+PR_BODY_DIR ?= notes/pr
+
+eod: ## End of day: sync TD↔plan↔ROADMAP and generate notes/day{N}-eod.md
+	@echo "🔁 Syncing tech debt with plan.yml and ROADMAP…"
+	@python tools/tech_debt.py sync $(if $(DAY),--day $(DAY),) --apply $(if $(EOD_SCOPE),--scope $(EOD_SCOPE),)
+	@echo "📝 Writing EOD summary note…"
+	@python tools/eod.py $(if $(DAY),--day $(DAY),)
+	@echo "✅ EOD complete."
+
+eod-commit: ## Commit EOD artifacts iff there are changes
+	@git add ROADMAP.md TECH_DEBT.md meta/plan.yml notes/ || true
+	@if git diff --cached --quiet; then \
+		echo "🟢 Nothing to commit for EOD."; \
+	else \
+		git commit -m "📝 docs(day$(DAY)): 🧾 EOD summary + TD/ROADMAP sync"; \
+	fi
+
+pr-body: ## Build PR body from meta/plan.yml into notes/pr/day{N}-pr.md
+	@mkdir -p $(PR_BODY_DIR)
+	@python tools/gen_pr_body.py $(if $(DAY),--day $(DAY),) --write $(PR_BODY_DIR)/day$(DAY)-pr.md
+	@note="notes/day$(DAY)-eod.md"; \
+	if [ -f "$$note" ]; then \
+	  printf "\n---\n\n## End of Day Notes\n\n" >> $(PR_BODY_DIR)/day$(DAY)-pr.md; \
+	  cat "$$note" >> $(PR_BODY_DIR)/day$(DAY)-pr.md; \
+	fi
+	@echo "📝 PR body -> $(PR_BODY_DIR)/day$(DAY)-pr.md"
+
+eod-pr: eod eod-commit ## Run EOD, then push and open a PR (requires gh)
+	@./scripts/open_pr.sh $(if $(DAY),--day $(DAY),) --base "$(PR_BASE)" \
+		$(if $(PR_DRAFT),--draft,) \
+		$(if $(PR_LABELS),--labels "$(PR_LABELS)",) \
+		$(if $(PR_REVIEWERS),--reviewers "$(PR_REVIEWERS)",)
+
+learn-log: ## Aggregate Learn:/Next: trailers into notes/day{N}-learning.md
+	@python tools/learning_log.py $(if $(DAY),--day $(DAY),)
+
+eod-all: eod learn-log eod-commit pr-body eod-pr ## Full EOD with learning log + PR
+
+.PHONY: help venv deps hooks test validate pr-check docs td td-sync td-add td-add-yes onboard \
+        tour tour-note tour-list tour-open handbook docs-refresh day-start eod eod-commit pr-body eod-pr \
+		learn-log eod-all
