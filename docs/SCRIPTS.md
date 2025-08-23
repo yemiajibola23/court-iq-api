@@ -5,6 +5,7 @@
   - [tools/commit_effects.py](#sec-tools-commit-effects-py)
   - [tools/day_start.py](#sec-tools-day-start-py)
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
+  - [tools/eod.py](#sec-tools-eod-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
   - [tools/plan_td_update.py](#sec-tools-plan-td-update-py)
   - [tools/tech_debt.py](#sec-tools-tech-debt-py)
@@ -27,7 +28,7 @@ Tick any unchecked checklist line that contains one of the ids (D##-# or TD#) an
 **`--help` output:**
 
 ```text
-[commit-effects] ids_to_tick=['D11-2']
+[commit-effects] ids_to_tick=[]
 ```
 
 ### `tools/day_start.py`
@@ -99,6 +100,28 @@ options:
   --default-branch DEFAULT_BRANCH
   --check               Check if output would change; do not write; exit 1 if
                         different
+```
+
+### `tools/eod.py`
+<a id="sec-tools-eod-py"></a>
+_Source: [tools/eod.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/eod.py)_
+
+_Summary:_
+
+eod.py — End-of-Day helper:
+- Reads meta/plan.yml (or --day) to locate today's Day block in ROADMAP.md
+- Summarizes checked/unchecked subtasks
+- Summarizes TDs in today's block (resolved vs pending from TECH_DEBT.md)
+- Writes notes/day{N}-eod.md
+
+**`--help` output:**
+
+```text
+usage: eod.py [-h] [--day DAY]
+
+options:
+  -h, --help  show this help message and exit
+  --day DAY   Day number (defaults to plan.yml current_day)
 ```
 
 ### `tools/gen_pr_body.py`
@@ -291,26 +314,38 @@ _Source: [scripts/open_pr.sh](https://github.com/yemiajibola23/court-iq-api/blob
 
 _Summary:_
 
-What: Open a PR using a body auto-generated from meta/plan.yml
-Why:  No manual copy/paste of objectives or tech debt
-Usage: scripts/open_pr.sh "Day 10: Validation polish"
-Requires: gh, Python (PyYAML), and tools/gen_pr_body.py
+Open a PR with a body generated from meta/plan.yml (and optionally EOD note)
+Works with Make targets:
+make pr-body DAY=11  -> writes notes/pr/day11-pr.md
+make eod-pr DAY=11   -> calls this script with --body-file ...
+
+Usage:
+scripts/open_pr.sh [--day N] [--base dev] [--draft] \
+[--labels "a,b"] [--reviewers "u1,u2"] \
+[--title "Day N: ..."] [--body-file path] [--no-push]
+
+Requires: gh (authenticated), Python (PyYAML), tools/gen_pr_body.py
 
 **`--help` output:**
 
 ```text
-Usage: scripts/open_pr.sh "Day <N>: <Short title>"
-
-Requires:
-  - gh (GitHub CLI), authenticated
-  - python + tools/gen_pr_body.py
+Usage:
+  scripts/open_pr.sh [--day N] [--base dev] [--draft]
+                     [--labels "label1,label2"] [--reviewers "alice,bob"]
+                     [--title "Day N: Title"] [--body-file path] [--no-push]
 
 Behavior:
-  - Generates PR body from meta/plan.yml
-  - Creates PR with provided title
+  - Determines day from --day or meta/plan.yml (current_day)
+  - Title defaults to "Day N: <ROADMAP heading>" when possible
+  - Body comes from:
+      1) --body-file, or
+      2) notes/pr/dayN-pr.md (if present), or
+      3) generated via tools/gen_pr_body.py --day N
+  - Pushes current branch and opens a PR to --base
 
 Examples:
-  scripts/open_pr.sh "Day 10: Validation polish"
+  scripts/open_pr.sh --day 11 --base dev --labels "day-11,auto-eod" --draft
+  scripts/open_pr.sh --body-file notes/pr/day11-pr.md
 ```
 ---
-_Generated on 2025-08-21T17:55:21_
+_Generated on 2025-08-22T19:52:09_

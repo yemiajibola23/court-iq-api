@@ -32,8 +32,7 @@ validate: ## Run structure + plan validators
 	@$(ACTIVATE) && python tools/validate_structure.py
 	@$(ACTIVATE) && python tools/validate_plan.py
 
-check: validate test ## Validate + tests (the gate you should run before PR)
-
+pr-check: validate test ## Validate + tests (the gate you should run before PR)
 # ---- Docs & automation -------------------------------------------------------
 
 docs: ## Rebuild scripts reference to docs/SCRIPTS.md
@@ -84,10 +83,6 @@ td-add-yes: ## Add TD (no prompt) for a specific day AND update plan.yml. Usage:
 	echo "🆕 Detected $$td — updating meta/plan.yml for Day $(DAY)…"; \
 	$(ACTIVATE) && python tools/plan_td_update.py --day $(DAY) --add $$td; \
 	echo "✅ Added $$td to plan.yml Day $(DAY) (tech_debt_add)"
-
-
-pr: ## Open a PR prefilled from plan.yml (requires gh)
-	@scripts/open_pr.sh "Day $$DAY: $$TITLE"
 
 onboard: ## One-shot setup: venv, dev deps, pre-commit, quick checks
 	@scripts/onboard.sh
@@ -189,6 +184,44 @@ day-start: ## Run to start each day
 	$(if $(DESC), --desc "$(DESC)",) \
 	$(FLAGS)
 
+# Optional knobs
+EOD_SCOPE ?=           # e.g., storage — forwarded to tech_debt.py sync
+PR_BASE   ?= dev       # default branch
+PR_DRAFT  ?= 1         # set empty to open a non-draft PR
+PR_LABELS ?= day-$(DAY),auto-eod
+PR_REVIEWERS ?=        # comma-separated GitHub handles
+PR_BODY_DIR ?= notes/pr
 
-.PHONY: help venv deps hooks test validate check docs td td-sync td-add td-add-yes pr onboard \
-        tour tour-note tour-list tour-open handbook docs-refresh day-start
+eod: ## End of day: sync TD↔plan↔ROADMAP and generate notes/day{N}-eod.md
+	@echo "🔁 Syncing tech debt with plan.yml and ROADMAP…"
+	@python tools/tech_debt.py sync $(if $(DAY),--day $(DAY),) --apply $(if $(EOD_SCOPE),--scope $(EOD_SCOPE),)
+	@echo "📝 Writing EOD summary note…"
+	@python tools/eod.py $(if $(DAY),--day $(DAY),)
+	@echo "✅ EOD complete."
+
+eod-commit: ## Commit EOD artifacts iff there are changes
+	@git add ROADMAP.md TECH_DEBT.md meta/plan.yml notes/ || true
+	@if git diff --cached --quiet; then \
+		echo "🟢 Nothing to commit for EOD."; \
+	else \
+		git commit -m "📝 docs(day$(DAY)): 🧾 EOD summary + TD/ROADMAP sync"; \
+	fi
+
+pr-body: ## Build PR body from meta/plan.yml into notes/pr/day{N}-pr.md
+	@mkdir -p $(PR_BODY_DIR)
+	@python tools/gen_pr_body.py $(if $(DAY),--day $(DAY),) --write $(PR_BODY_DIR)/day$(DAY)-pr.md
+	@note="notes/day$(DAY)-eod.md"; \
+	if [ -f "$$note" ]; then \
+	  printf "\n---\n\n## End of Day Notes\n\n" >> $(PR_BODY_DIR)/day$(DAY)-pr.md; \
+	  cat "$$note" >> $(PR_BODY_DIR)/day$(DAY)-pr.md; \
+	fi
+	@echo "📝 PR body -> $(PR_BODY_DIR)/day$(DAY)-pr.md"
+
+eod-pr: eod eod-commit ## Run EOD, then push and open a PR (requires gh)
+	@./scripts/open_pr.sh $(if $(DAY),--day $(DAY),) --base "$(PR_BASE)" \
+		$(if $(PR_DRAFT),--draft,) \
+		$(if $(PR_LABELS),--labels "$(PR_LABELS)",) \
+		$(if $(PR_REVIEWERS),--reviewers "$(PR_REVIEWERS)",)
+
+.PHONY: help venv deps hooks test validate pr-check docs td td-sync td-add td-add-yes onboard \
+        tour tour-note tour-list tour-open handbook docs-refresh day-start eod eod-commit pr-body eod-pr
