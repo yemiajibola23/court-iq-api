@@ -85,7 +85,9 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] 🔨 refactor(api): optional `hasMore` boolean in list response (D10-3)
 - [x] 📝 docs: update README examples and error shapes (D10-4)
 
-## Day 11 – Storage Provider Wiring
+## Day 11 – SQLite migration + video_path validator hardening + 422 enve
+
+**Objective:** SQLite migration + video_path validator hardening + 422 envelope
 
 - [ ] ✨ feat(storage): add provider interface (local, gcs) (D11-1)
 - [ ] 🧹 chore(env): add `STORAGE_PROVIDER`, bucket config, emulator flag (D11-2)
