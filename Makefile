@@ -223,5 +223,11 @@ eod-pr: eod eod-commit ## Run EOD, then push and open a PR (requires gh)
 		$(if $(PR_LABELS),--labels "$(PR_LABELS)",) \
 		$(if $(PR_REVIEWERS),--reviewers "$(PR_REVIEWERS)",)
 
+learn-log: ## Aggregate Learn:/Next: trailers into notes/day{N}-learning.md
+	@python tools/learning_log.py $(if $(DAY),--day $(DAY),)
+
+eod-all: eod learn-log eod-commit pr-body eod-pr ## Full EOD with learning log + PR
+
 .PHONY: help venv deps hooks test validate pr-check docs td td-sync td-add td-add-yes onboard \
-        tour tour-note tour-list tour-open handbook docs-refresh day-start eod eod-commit pr-body eod-pr
+        tour tour-note tour-list tour-open handbook docs-refresh day-start eod eod-commit pr-body eod-pr \
+		learn-log eod-all

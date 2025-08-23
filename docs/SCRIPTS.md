@@ -7,6 +7,7 @@
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
   - [tools/eod.py](#sec-tools-eod-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
+  - [tools/learning_log.py](#sec-tools-learning-log-py)
   - [tools/plan_td_update.py](#sec-tools-plan-td-update-py)
   - [tools/tech_debt.py](#sec-tools-tech-debt-py)
   - [tools/validate_plan.py](#sec-tools-validate-plan-py)
@@ -152,6 +153,29 @@ options:
   --day DAY      Override day number
   --no-git       Skip git branch detection
   --write WRITE  Write output to file instead of stdout
+```
+
+### `tools/learning_log.py`
+<a id="sec-tools-learning-log-py"></a>
+_Source: [tools/learning_log.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/learning_log.py)_
+
+_Summary:_
+
+learning_log.py — aggregate 'Learn:' and 'Next:' trailers from today's commits
+and write notes/day{N}-learning.md. Detects the day's start by the commit that
+added notes/day{N}-kickoff.md (created by day_start.py).
+
+Usage:
+  python tools/learning_log.py [--day N]
+
+**`--help` output:**
+
+```text
+usage: learning_log.py [-h] [--day DAY]
+
+options:
+  -h, --help  show this help message and exit
+  --day DAY
 ```
 
 ### `tools/plan_td_update.py`
@@ -348,4 +372,4 @@ Examples:
   scripts/open_pr.sh --body-file notes/pr/day11-pr.md
 ```
 ---
-_Generated on 2025-08-22T19:52:09_
+_Generated on 2025-08-22T21:46:03_
