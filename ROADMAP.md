@@ -1,4 +1,5 @@
 # CourtIQ – 40-Day Hybrid Roadmap (Checklist Only)
+
 _Each item is a suggested commit. Keep using the branch naming convention per day._
 
 ## Day 1 – Backend Repo Setup
@@ -85,22 +86,17 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] 🔨 refactor(api): optional `hasMore` boolean in list response (D10-3)
 - [x] 📝 docs: update README examples and error shapes (D10-4)
 
-## Day 11 – SQLite migration + video_path validator hardening + 422 enve
+## Day 11 – SQLite migration + validator + 422
 
 **Objective:** SQLite migration + video_path validator hardening + 422 envelope
 
-- [ ] ✨ feat(storage): add provider interface (local, gcs) (D11-1)
-- [ ] 🧹 chore(env): add `STORAGE_PROVIDER`, bucket config, emulator flag (D11-2)
-- [ ] ✅ test(storage): fake provider for unit tests (D11-3)
-- [ ] 🔨 refactor(services): inject storage provider via service layer (D11-4)
-- [ ] 📝 docs: storage configuration matrix (D11-5)
-- [ ] 💳 techdebt(storage): In-memory plays repo instead of persistent storage (SQLite first) (TD1)
-
-- [ ] 💳 techdebt: Normalization rules: don’t mutate URL casing except case-insensitive extension checks (TD12)
-
-- [ ] 💳 techdebt: `video_path` validation gaps: **http(s) only**, **max length 2048**, allowed extensions `{.mp4,.mov,.m4v,.webm}` (TD4)
-
-- [ ] 💳 techdebt: 422 error format should be **per-field arrays** (e.g., `{ "video_path": ["…"] }`) for all validation failures (TD9)
+- [ ] ✨ feat(db): add SQLite schema + connection bootstrap (D11-1)
+- [ ] ✨ feat(repos): `SQLitePlaysRepo` (`create_play`, `get_play`, `list_plays`, `delete_play`, `clear`) (D11-2)
+- [ ] 🔨 refactor(api): default repo → SQLite via dependency; keep test override (D11-3)
+- [ ] ✅ test(repos/api): CRUD + prefix filter + cursor pagination (D11-4)
+- [ ] ✨ feat(validation): harden `video_path` (http(s), ≤2048, {.mp4,.mov,.m4v,.webm}) (D11-5)
+- [ ] ✨ feat(api): global 422 handler with per-field arrays (D11-6)
+- [ ] 📝 docs: README error examples; update TECH_DEBT resolved items (TD1, TD12; TD4/TD9 once implemented) (D11-7)
 
 ## Day 12 – Video Upload on Create
 
@@ -130,7 +126,7 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 🧹 chore(logging): structured logs for storage ops (D14-4)
 - [ ] 📝 docs: failure scenarios & retries (not guaranteed) (D14-5)
 - [ ] 💳 techdebt(routers): Missing negative tests for malformed UUID on GET /v1/plays/{id} (TD7)
-- [ ] 💳 techdebt(db) Plan for introducing threading lock or concurrency-safe patterns before DB migration (TD20)	
+- [ ] 💳 techdebt(db) Plan for introducing threading lock or concurrency-safe patterns before DB migration (TD20)
 
 ## Day 15 – Signed URLs (Secure Access)
 
@@ -341,16 +337,16 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 🧹 chore: archive tech-debt items not in scope (D40-4)
 - [ ] 📝 docs: “What’s next” and contribution welcome notes (D40-5)
 
-
-
 ## Meta Improvements & Tooling
 
 ### Pre-commit & Validation
+
 - ✅ Integrated `docs-refresh` into pre-commit with stable timestamps (SCRIPTS.md no longer drifts).
 - ✅ Added `pre-commit clean + reinstall` troubleshooting step to CONTRIBUTING.
 - ✅ Clarified role of `validate_plan.py` and `validate_structure.py` in both pre-commit and CI.
 
 ### Documentation & Conventions
+
 - ✅ Expanded CONTRIBUTING.md:
   - Branch naming (`day#-feature`).
   - Commit messages (Conventional Commits + emojis).
@@ -359,13 +355,16 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - ✅ Added troubleshooting guide for common validator/pre-commit errors.
 
 ### Planning Alignment
+
 - ✅ Reinforced `meta/plan.yml` as the single source of truth (`current_day` must match roadmap).
 - ✅ Locked down ROADMAP ↔ TECH_DEBT ↔ Plan sync rules (objectives must match exactly; TD resolved/added must be documented).
 - ✅ Documented hybrid dev flow in CONTRIBUTING (validators + pre-commit + CI).
 - ✅ Ensured only **today’s day** is validated, future days are flexible.
 
 ### Impact
+
 These meta improvements:
+
 - Increase **consistency** across commits, branches, and PRs.
 - Enforce **automation** via validators and pre-commit hooks.
 - Improve **clarity** for contributors by making expectations explicit.
