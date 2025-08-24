@@ -13,6 +13,11 @@ class SQLitePlaysRepo():
         self.conn.row_factory = sqlite3.Row
         self._init_schema()
         
+        self.conn.execute("PRAGMA journal_mode=WAL;")
+        self.conn.execute("PRAGMA synchronous=NORMAL;")
+        self.conn.execute("PRAGMA foreign_keys=ON;")
+
+        
     def _init_schema(self):
         sql = """
         CREATE TABLE IF NOT EXISTS plays (
