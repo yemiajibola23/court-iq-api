@@ -8,12 +8,13 @@ from app.deps import get_repo
 
 @pytest.fixture(scope="function")
 def client():
-    # fresh client per test to avoid leaking in-memory state across tests
-    app.dependency_overrides[get_repo] = lambda: MemoryRepository()
-    
+    # One repo instance for the whole test (persists across requests within the test)
+    repo = MemoryRepository()
+    repo.clear()
+
+    app.dependency_overrides[get_repo] = lambda: repo
     with TestClient(app) as c:
         yield c
-    
     app.dependency_overrides.clear()
 
 @pytest.fixture(scope="function")

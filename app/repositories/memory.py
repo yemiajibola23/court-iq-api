@@ -5,15 +5,16 @@ from datetime import datetime, timezone
 
 # TECH_DEBT: TD1, TD8  — replace in-memory store with DB repo; add test-time reset/fixture to avoid cross-test pollution.
 # TECH_DEBT: TD3       — add direct unit tests for repo methods (create/get).
+
+def _utc_iso() -> str:
+    # e.g. 2025-08-23T17:03:12.345678Z
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+_STORE: Dict[str, Play] = {}
 class MemoryRepository:
-    _STORE: Dict[str, Play]
     
     def __init__(self):
-        self._STORE = {}
-        
-    def _utc_iso(self) -> str:
-        # e.g. 2025-08-23T17:03:12.345678Z
-        return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self._items =  _STORE
 
     def _matches_prefix(self, title: str, prefix: Optional[str]) -> bool:
         """Case-insensitive, trimmed prefix match. None/'' => match all."""
@@ -22,18 +23,18 @@ class MemoryRepository:
         return title.casefold().startswith(prefix.strip().casefold())
 
     def clear_store(self):
-        self._STORE.clear()
+        self._items.clear()
 
     def create_play(self, title: str, video_path: str) -> Play:
         play_id = str(uuid4())
-        play = Play(play_id, title, video_path, created_at=self._utc_iso())
+        play = Play(play_id, title, video_path, created_at=_utc_iso())
     
-        self._STORE[play_id] = play
+        self._items[play_id] = play
     
         return play
     
     def get_play(self, id: str) -> Optional[Play]:
-        return self._STORE.get(id)
+        return self._items.get(id)
 
     def list_plays(self, *, cursor: Optional[str] = None, limit: int = 10, title_prefix: Optional[str] = None) -> Tuple[List[Play], Optional[str]]:
         """Filter by title prefix, then paginate over stable insertion order.
@@ -44,7 +45,7 @@ class MemoryRepository:
         - next_cursor is the last id in the page iff more items remain
         """
         # 1) Keys are in insertion order in Python 3.7+
-        keys = [k for k in self._STORE if self._matches_prefix(self._STORE[k].title, title_prefix)]
+        keys = [k for k in self._items if self._matches_prefix(self._items[k].title, title_prefix)]
     
         # Normalize limit
         lim = max(0, int(limit))
@@ -61,7 +62,7 @@ class MemoryRepository:
         # 3) Slice the page
         end_idx = start_idx + lim
         page_keys = keys[start_idx:end_idx]
-        items = [ self._STORE[k] for k in page_keys ]        
+        items = [ self._items[k] for k in page_keys ]        
     
         # 4) Compute next cursor
         has_more = end_idx < len(keys)
@@ -70,10 +71,10 @@ class MemoryRepository:
         return items, next_cursor
 
     def delete_play(self, id: str) -> bool:
-        removed = self._STORE.pop(id, None)
+        removed = self._items.pop(id, None)
     
         return removed is not None
 
     def clear(self) -> None:
-        self._STORE.clear()
+        self._items.clear()
         
