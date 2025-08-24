@@ -49,3 +49,8 @@ firebase-data/
 dist/
 build/
 # local test Thu Aug 14 23:50:31 CDT 2025
+
+# Db
+/db/*.sqlite
+/db/*.sqlite-journal
+/db/*.db

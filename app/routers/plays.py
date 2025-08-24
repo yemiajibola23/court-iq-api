@@ -4,7 +4,7 @@ from typing import Optional, List
 
 from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
 from app.utils.mappers import to_play_dto
-from app.deps import get_repo, _singleton_repo
+from app.deps import get_repo
 from app.repositories.plays_repo import PlaysRepository
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.

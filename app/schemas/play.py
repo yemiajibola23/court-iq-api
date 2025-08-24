@@ -36,9 +36,9 @@ class PlayCreateRequest(BaseModel):
             raise ValueError("video_path must be a string")
         
         v = v.strip()
-        # 1. Acccept length ≤ 2048 chars
+        # 1. Accept length ≤ 2048 chars
         if len(v) > 2048:
-            raise ValueError("Video path must be ≤ 2048 chars")
+            raise ValueError("video_path must be ≤ 2048 characters") 
                 
         # 2. Accept http(s) URLs
         parts = urlsplit(v)
@@ -48,7 +48,7 @@ class PlayCreateRequest(BaseModel):
         # 3. Accept terminal extension (case-insensitive), queries/fragments are fine
         suffix = Path(parts.path).suffix.lower()
         if suffix not in ALLOWED_EXTS:
-            raise ValueError("video_path must be a supported format (.mp4, .mov, .mv4, .webm)")
+            raise ValueError("video_path must be a supported format (.mp4, .mov, .m4v, .webm)")
 
         return v
 class PlayCreateResponse(BaseModel):

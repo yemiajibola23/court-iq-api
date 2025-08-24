@@ -8,14 +8,13 @@ from app.deps import get_repo
 
 @pytest.fixture(scope="function")
 def client():
-    # fresh client per test to avoid leaking in-memory state across tests
+    # One repo instance for the whole test (persists across requests within the test)
     repo = MemoryRepository()
-    
+    repo.clear()
+
     app.dependency_overrides[get_repo] = lambda: repo
-    
     with TestClient(app) as c:
         yield c
-    
     app.dependency_overrides.clear()
 
 @pytest.fixture(scope="function")
@@ -40,22 +39,21 @@ def assert_201_field():
         
     return _assert
 
-
-@pytest.fixture
+@pytest.fixture(scope="function")
 def assert_422_field():
     def _assert(res, field: str):
         assert res.status_code == 422
-    
         data = res.json()
-        assert "detail" in data and isinstance(data["detail"], list)
+        
+        # per-field arrays like {"video_path": ["…", "…"], "title": ["…"]}
+        assert isinstance(data, dict), data
+        assert field in data, f"{field} not in {data}"
+        assert isinstance(data[field], list) and all(isinstance(m, str) for m in data[field])
+        # optional: at least one non-empty message
+        assert any(m.strip() for m in data[field])
     
-        # be flexible about FastAPI/Pydantic error shape but ensure it references 'title'
-        assert any(
-            (field in err.get("loc", [])) or
-            (isinstance(err.get("loc"), list) and field in err["loc"])
-            for err in data["detail"]
-        )
     return _assert
+
 
 @pytest.fixture(scope="function")
 def seed_many_plays(client) -> Callable[[List[Dict]], List[Dict]]:
