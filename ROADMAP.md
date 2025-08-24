@@ -95,8 +95,8 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] 🔨 refactor(api): default repo → SQLite via dependency; keep test override (D11-3)
 - [x] ✅ test(repos/api): CRUD + prefix filter + cursor pagination (D11-4)
 - [x] ✨ feat(validation): harden `video_path` (http(s), ≤2048, {.mp4,.mov,.m4v,.webm}) (D11-5)
-- [ ] ✨ feat(api): global 422 handler with per-field arrays (D11-6)
-- [ ] 📝 docs: README error examples; update TECH_DEBT resolved items (TD1, TD12; TD4/TD9 once implemented) (D11-7)
+- [x] ✨ feat(api): global 422 handler with per-field arrays (D11-6)
+- [x] 📝 docs: README error examples; update TECH_DEBT resolved items (TD1, TD12; TD4/TD9 once implemented) (D11-7)
 
 ## Day 12 – Video Upload on Create
 
