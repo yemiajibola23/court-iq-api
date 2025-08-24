@@ -1,6 +1,7 @@
 from uuid import uuid4, UUID
 from typing import Optional, Dict, List, Tuple
 from app.models.play import Play
+from datetime import datetime, timezone
 
 # TECH_DEBT: TD1, TD8  — replace in-memory store with DB repo; add test-time reset/fixture to avoid cross-test pollution.
 # TECH_DEBT: TD3       — add direct unit tests for repo methods (create/get).
@@ -9,6 +10,10 @@ class MemoryRepository:
     
     def __init__(self):
         self._STORE = {}
+        
+    def _utc_iso(self) -> str:
+        # e.g. 2025-08-23T17:03:12.345678Z
+        return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     def _matches_prefix(self, title: str, prefix: Optional[str]) -> bool:
         """Case-insensitive, trimmed prefix match. None/'' => match all."""
@@ -21,7 +26,7 @@ class MemoryRepository:
 
     def create_play(self, title: str, video_path: str) -> Play:
         play_id = str(uuid4())
-        play = Play(play_id, title, video_path)
+        play = Play(play_id, title, video_path, created_at=self._utc_iso())
     
         self._STORE[play_id] = play
     

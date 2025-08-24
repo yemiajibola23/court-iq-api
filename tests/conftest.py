@@ -9,9 +9,7 @@ from app.deps import get_repo
 @pytest.fixture(scope="function")
 def client():
     # fresh client per test to avoid leaking in-memory state across tests
-    repo = MemoryRepository()
-    
-    app.dependency_overrides[get_repo] = lambda: repo
+    app.dependency_overrides[get_repo] = lambda: MemoryRepository()
     
     with TestClient(app) as c:
         yield c
@@ -39,7 +37,6 @@ def assert_201_field():
         assert loc_id == uuid_val
         
     return _assert
-
 
 @pytest.fixture
 def assert_422_field():
