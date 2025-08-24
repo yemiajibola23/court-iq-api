@@ -13,7 +13,7 @@ This file tracks known technical debt and when we plan to address it (aligned to
 | TD6  | API field naming inconsistency: `PlayCreateResponse.playId` (camel) vs `PlayRead.id` (snake)                                        | Day 13          | Pending                                     |
 | TD7  | Missing negative tests for malformed UUID on GET `/v1/plays/{id}`                                                                   | Day 14          | Pending                                     |
 | TD8  | In-memory data store not reset between tests could cause cross-test pollution                                                       | Day 8           | ✅ Resolved (autouse reset + `clear_store`) |
-| TD9  | 422 error format should be **per-field arrays** (e.g., `{ "video_path": ["…"] }`) for all validation failures                       | Day 11          | Pending                                     |
+| TD9  | 422 error format should be **per-field arrays** (e.g., `{ "video_path": ["…"] }`) for all validation failures                       | Day 11          | Resolved ✅                                     |
 | TD10 | Dev-override security: prevent path traversal outside `MEDIA_ROOT` (e.g., `../`)                                                    | Day 12          | Pending                                     |
 | TD11 | Dev-override UX: precise 422 message like `["local file paths are not allowed in this environment"]` when flag is off               | Day 12          | Pending                                     |
 | TD12 | Normalization rules: don’t mutate URL casing except case-insensitive extension checks                                               | Day 11          | Resolved ✅                                     |
