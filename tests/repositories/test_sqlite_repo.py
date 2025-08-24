@@ -10,7 +10,7 @@ def test_sqlite_repo_create_and_get_ok(tmp_path: Path):
     # Arrange
     db_path = tmp_path / "db.sqlite"
     repo = SQLitePlaysRepo(db_path)
-    # assert isinstance(repo, PlaysRepository)
+    assert isinstance(repo, PlaysRepository)
     
     title = "Spain PnR"
     video_path = "https://example.com/clip.mp4"
@@ -52,7 +52,7 @@ def test_sqlite_repo_list_prefix_filter_case_insensitive(tmp_path: Path):
     # Assert
     assert len(items) == 3
     assert next_cursor is None
-    assert [p.title for p in items] == {"Alpha Cut", "alpha Spain", "ALPHAbet Soup"}
+    assert set([p.title for p in items]) == {"Alpha Cut", "alpha Spain", "ALPHAbet Soup"}
     assert all(p.title.lower().startswith("alpha") for p in items)
     
     ids = [p.id for p in items]

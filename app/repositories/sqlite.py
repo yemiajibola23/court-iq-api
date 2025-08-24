@@ -52,8 +52,33 @@ class SQLitePlaysRepo():
         return self._row_to_play(row)
     
     def list_plays(self, *, cursor: Optional[str] = None, limit: int = 10, title_prefix: Optional[str] = None) -> Tuple[List[Play], Optional[str]]:
-        raise NotImplementedError
-    
+        clauses = ["1=1"]
+        params = []
+        if title_prefix:
+            prefix = title_prefix.lower().strip()
+            if prefix:
+                clauses.append("LOWER(title) LIKE ?")
+                params.append(prefix + "%")
+            
+        if cursor:
+            clauses.append("id > ?")
+            params.append(cursor)
+        
+        where_sql = " AND ".join(clauses)
+        sql = f"""
+                SELECT id, title, video_path, created_at 
+                FROM plays 
+                WHERE {where_sql}
+                ORDER BY id ASC
+                LIMIT ?
+            """
+        params.append(int(limit))
+        rows = self.conn.execute(sql, params).fetchall()
+        
+        items = [self._row_to_play(row) for row in rows]
+        next_cursor = items[-1].id if len(items) == limit else None
+
+        return items, next_cursor
     def delete_play(self, id: str) -> bool: 
         raise NotImplementedError
     
