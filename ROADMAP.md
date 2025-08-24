@@ -92,9 +92,9 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 
 - [x] ✨ feat(db): add SQLite schema + connection bootstrap (D11-1)
 - [x] ✨ feat(repos): `SQLitePlaysRepo` (`create_play`, `get_play`, `list_plays`, `delete_play`, `clear`) (D11-2)
-- [ ] 🔨 refactor(api): default repo → SQLite via dependency; keep test override (D11-3)
-- [ ] ✅ test(repos/api): CRUD + prefix filter + cursor pagination (D11-4)
-- [ ] ✨ feat(validation): harden `video_path` (http(s), ≤2048, {.mp4,.mov,.m4v,.webm}) (D11-5)
+- [x] 🔨 refactor(api): default repo → SQLite via dependency; keep test override (D11-3)
+- [x] ✅ test(repos/api): CRUD + prefix filter + cursor pagination (D11-4)
+- [x] ✨ feat(validation): harden `video_path` (http(s), ≤2048, {.mp4,.mov,.m4v,.webm}) (D11-5)
 - [ ] ✨ feat(api): global 422 handler with per-field arrays (D11-6)
 - [ ] 📝 docs: README error examples; update TECH_DEBT resolved items (TD1, TD12; TD4/TD9 once implemented) (D11-7)
 

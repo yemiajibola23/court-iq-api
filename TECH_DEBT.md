@@ -16,7 +16,7 @@ This file tracks known technical debt and when we plan to address it (aligned to
 | TD9  | 422 error format should be **per-field arrays** (e.g., `{ "video_path": ["…"] }`) for all validation failures                       | Day 11          | Pending                                     |
 | TD10 | Dev-override security: prevent path traversal outside `MEDIA_ROOT` (e.g., `../`)                                                    | Day 12          | Pending                                     |
 | TD11 | Dev-override UX: precise 422 message like `["local file paths are not allowed in this environment"]` when flag is off               | Day 12          | Pending                                     |
-| TD12 | Normalization rules: don’t mutate URL casing except case-insensitive extension checks                                               | Day 11          | Pending                                     |
+| TD12 | Normalization rules: don’t mutate URL casing except case-insensitive extension checks                                               | Day 11          | Resolved ✅                                     |
 | TD13 | Introduce `PlayRepository` interface + FastAPI dependency override so tests can use a fresh per-test repo instance                  | Day 10          | Resolved ✅                                 |
 | TD14 | Cursor design: move from plain `id` to composite/opaque token (e.g., `created_at`) after DB migration                               | Day 12          | Pending                                     |
 | TD15 | List polish: add `hasMore` boolean (or compute deterministically) alongside `nextCursor`                                            | Day 9           | Resolved ✅                                 |
