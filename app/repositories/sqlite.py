@@ -79,8 +79,15 @@ class SQLitePlaysRepo():
         next_cursor = items[-1].id if len(items) == limit else None
 
         return items, next_cursor
+    
     def delete_play(self, id: str) -> bool: 
-        raise NotImplementedError
+        sql = "DELETE FROM plays WHERE id=?"
+        with self.conn:
+            cursor = self.conn.execute(sql, (id,))
+        
+        return cursor.rowcount > 0        
     
     def clear(self) -> None:
-        raise NotImplementedError
+        sql = "DELETE FROM plays"
+        with self.conn:
+            self.conn.execute(sql)

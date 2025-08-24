@@ -5,7 +5,7 @@ This file tracks known technical debt and when we plan to address it (aligned to
 
 | ID   | Description                                                                                                                         | When to Address | Status                                      |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------- |
-| TD1  | In-memory plays repo instead of persistent storage (SQLite first)                                                                   | Day 11          | Pending                                     |
+| TD1  | In-memory plays repo instead of persistent storage (SQLite first)                                                                   | Day 11          | Resolved ✅                                     |
 | TD2  | GET `/v1/plays/{id}` lacks strict UUID validation                                                                                   | Day 9           | Resolved ✅                                 |
 | TD3  | No direct unit tests for `plays_repo` (currently covered only via API tests)                                                        | Day 10          | Resolved ✅                                 |
 | TD4  | `video_path` validation gaps: **http(s) only**, **max length 2048**, allowed extensions `{.mp4,.mov,.m4v,.webm}`                    | Day 10          | Resolved ✅                                 |
