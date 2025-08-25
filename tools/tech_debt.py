@@ -319,7 +319,7 @@ def cmd_add(args: argparse.Namespace) -> None:
     print(new_row)
     print(f"NEW_TD_ID={tdid}")
 
-def cmd_sync(args: argparse.Namespace) -> None:
+def cmd_sync(args: argparse.Namespace) -> int:
     """
     Cross-check plan.yml (tech_debt_resolve) vs ROADMAP (today's Day) vs TECH_DEBT table.
 
@@ -365,6 +365,15 @@ def cmd_sync(args: argparse.Namespace) -> None:
         print(f"• Missing in plan.yml (will add if --apply): {', '.join(missing_in_plan)}")
     if not missing_in_plan and not missing_in_roadmap:
         print("• ROADMAP and plan.yml are aligned for TD ids.")
+        
+    # If we're only checking (dry-run), exit non-zero on drift so hooks can fail.
+    if getattr(args, "check", False) and not args.apply:
+        drift = bool(missing_in_plan or missing_in_plan)
+        if drift:
+            print("\n❌ Drift detected (ROADMAP ↔ plan.yml). Run with --apply or fix manually.")
+            return 2
+        print("\n✅ No drift detected.")
+        return 0
 
     # Apply changes if requested
     if args.apply:
@@ -400,6 +409,9 @@ def cmd_sync(args: argparse.Namespace) -> None:
 
         if not wrote_plan and not wrote_roadmap:
             print("Nothing to apply.")
+        return 0 
+    # Default (no --apply, no --check)
+    return 0
 
 # --------------------------------------------------------------------------- #
 # CLI
@@ -435,6 +447,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp_sync.add_argument("--scope", default=None, help='Scope to include on new ROADMAP TD lines, e.g., "storage"')
     sp_sync.add_argument("--no-roadmap-write", action="store_true", help="Do not modify ROADMAP.md")
     sp_sync.add_argument("--no-plan-write", action="store_true", help="Do not modify plan.yml")
+    sp_sync.add_argument("--dry-run", "--check", dest="check", action="store_true", help="Do not write files; exit 2 if drift detected")
     sp_sync.set_defaults(func=cmd_sync)
 
     return p
@@ -443,8 +456,8 @@ def main() -> int:
     try:
         parser = build_parser()
         args = parser.parse_args()
-        args.func(args)
-        return 0
+        rc = args.func(args)
+        return int(rc) if rc is not None else 0
     except FileNotFoundError as e:
         print(f"❌ {e}", file=sys.stderr)
         return 1

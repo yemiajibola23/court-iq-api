@@ -24,12 +24,22 @@ _Source: [tools/commit_effects.py](https://github.com/yemiajibola23/court-iq-api
 
 _Summary:_
 
-Tick any unchecked checklist line that contains one of the ids (D##-# or TD#) anywhere.
+commit_effects.py — auto-checkoff ROADMAP subtasks (D##-#) and mark TECH_DEBT rows
+as resolved based on commit messages.
+
+Usage with pre-commit:
+
+  stages: [commit-msg]   # recommended
+  pass_filenames: true   # pre-commit passes the temp commit message file
+
+Message conventions:
+  - Include subtasks anywhere:        D11-2
+  - Include trailer for tech debt:    Resolves-TD: TD4, TD9, TD12
 
 **`--help` output:**
 
 ```text
-[commit-effects] ids_to_tick=[]
+[commit-effects] ids_to_tick=['D11-1', 'D11-6']
 ```
 
 ### `tools/day_start.py`
@@ -258,6 +268,8 @@ _Source: [tools/validate_plan.py](https://github.com/yemiajibola23/court-iq-api/
 
 _Summary:_
 
+# --------------------------- parsing helpers ---------------------------
+
 def load_plan(path: Path) -> Dict[str, Any]:
     if not path.exists():
         fail([f"Missing plan file: {path}"])
@@ -271,16 +283,33 @@ def parse_tech_debt_table(md_text: str) -> Dict[str, Dict[str, str]]:
 **`--help` output:**
 
 ```text
-usage: validate_plan.py [-h]
+usage: validate_plan.py [-h] [--allow-prefix ALLOW_PREFIX]
+                        [--allow-trailer ALLOW_TRAILER]
+                        [--commit-msg-file COMMIT_MSG_FILE]
 
 Validate that today's plan (meta/plan.yml) matches TECH_DEBT.md and
 ROADMAP.md. Checks: 1) Every TD in today's `tech_debt_resolve` exists in
 TECH_DEBT.md and is marked Resolved. 2) Every TD in today's `tech_debt_add`
 exists in TECH_DEBT.md (status can be Pending). 3) ROADMAP.md contains a Day
-<current_day> section AND includes today's objective text.
+<current_day> section AND includes today's objective text. Skip conditions
+(non-fatal): - --allow-prefix <prefix> (repeatable): if commit subject starts
+with any prefix - --allow-trailer key:value (repeatable): if commit trailers
+include key with a truthy value
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  --allow-prefix ALLOW_PREFIX
+                        If the commit SUBJECT starts with any of these
+                        prefixes, skip validation. Repeatable.
+  --allow-trailer ALLOW_TRAILER
+                        If commit trailers contain key:true for any of these
+                        keys, skip validation. Format key:value or key=value;
+                        value treated as truthy when in {true,1,yes,on}.
+                        Repeatable.
+  --commit-msg-file COMMIT_MSG_FILE
+                        Optional path to the commit message file (commit-msg
+                        hook). If omitted, we try .git/COMMIT_EDITMSG. Any
+                        extra positional arg that is a file is also used.
 ```
 
 ### `tools/validate_structure.py`
@@ -372,4 +401,4 @@ Examples:
   scripts/open_pr.sh --body-file notes/pr/day11-pr.md
 ```
 ---
-_Generated on 2025-08-22T21:46:03_
+_Generated on 2025-08-25T00:18:51_

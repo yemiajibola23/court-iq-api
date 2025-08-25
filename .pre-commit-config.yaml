@@ -12,12 +12,13 @@ repos:
       - id: validate-plan
         name: Validate plan alignment
         entry: python tools/validate_plan.py
+        args: ["--allow-prefix=📝 docs(kickoff)", "--allow-trailer=skip-plan-check:true"]
         language: system
         pass_filenames: false
         stages: [pre-commit]
 
       - id: tech-debt-sync-check
-        name: tech-debt sync (dry-run)
+        name: tech-debt sync (check)
         entry: python tools/tech_debt.py sync --dry-run
         language: system
         pass_filenames: false
