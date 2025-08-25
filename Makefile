@@ -174,15 +174,26 @@ DESC ?=
 FLAGS ?=
 
 day-start: ## Run to start each day
-	@if [ -z "$(DAY)"]; then \
-		echo "Usage make day-start DAY=11 [TYPE=feat] [DESC=\"...\"] [FLAGS=--dry-run]"; \
-		exit; \
+	@if [ -z "$(DAY)" ]; then \
+		echo "Usage: make day-start DAY=11 [TYPE=feat] [DESC=\"...\"] [FLAGS=--dry-run]"; \
+		exit 1; \
 	fi
 	@echo "→ python tools/day_start.py --day $(DAY) --type $(TYPE) --desc '$(DESC)' $(FLAGS)"
 	@python tools/day_start.py --day $(DAY) \
-	$(if $(TYPE), --type $(TYPE),) \
-	$(if $(DESC), --desc "$(DESC)",) \
-	$(FLAGS)
+		$(if $(TYPE), --type $(TYPE),) \
+		$(if $(DESC), --desc "$(DESC)",) \
+		$(FLAGS)
+
+	@echo "→ Ensuring ROADMAP Day $(DAY) section & objective"
+	@python tools/ensure_day_in_roadmap.py || true
+
+	@echo "→ Syncing plan ↔ ROADMAP tech-debt (Day $(DAY))"
+	@python tools/tech_debt.py sync --day $(DAY) --apply || true
+
+	@echo "→ Validating plan alignment"
+	@python tools/validate_plan.py || true
+
+	@echo "✅ Kickoff checks complete."
 
 # Optional knobs
 EOD_SCOPE ?=           # e.g., storage — forwarded to tech_debt.py sync
