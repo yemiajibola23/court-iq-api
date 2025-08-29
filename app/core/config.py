@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
 # TECH_DEBT: TD5, TD10, TD11 — wire ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT; secure path resolution (no traversal); precise 422 messages when override is off.
 
@@ -31,7 +32,7 @@ PORT: int = _get_int("PORT", 8000)
 STORAGE_BUCKET: str = os.getenv("STORAGE_BUCKET", "")
 USE_EMULATORS: bool = _get_bool("USE_EMULATORS", True)
 ALLOW_LOCAL_VIDEO_PATHS: bool = _get_bool("ALLOW_LOCAL_VIDEO_PATHS", False)
-MEDIA_ROOT = os.getenv("MEDIA_ROOT", "./media")
+MEDIA_ROOT: Path = Path(os.getenv("MEDIA_ROOT", "./media")).expanduser().resolve()
 
 # Optional: expose what we export (helps with autocomplete)
-__all__ = ["APP_ENV", "PORT", "STORAGE_BUCKET", "USE_EMULATORS", "ALLOW_LOCAL_VIDEO_PATHS"]
+__all__ = ["APP_ENV", "PORT", "STORAGE_BUCKET", "USE_EMULATORS", "ALLOW_LOCAL_VIDEO_PATHS", "MEDIA_ROOT"]

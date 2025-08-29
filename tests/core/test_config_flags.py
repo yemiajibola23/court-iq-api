@@ -1,8 +1,8 @@
 
 import importlib
 from pathlib import Path
+import sys
 import pytest
-from app.core.config import config
 
 def _reload_config(monkeypatch, **env):
     """
@@ -18,6 +18,12 @@ def _reload_config(monkeypatch, **env):
     # Apply overrides for this test
     for k,v in env.items():
         monkeypatch.setenv(k, str(v))
+
+    # Hard reload the module so top-level constants re-evaluate from env
+    if "app.core.config" in sys.modules:
+        del sys.modules["app.core.config"]
+    
+    config = importlib.import_module("app.core.config")
     
     return importlib.reload(config)
 
@@ -43,5 +49,16 @@ def test_env_overrides_for_flags(monkeypatch, tmp_path):
     - MEDIA_ROOT to a given absolute/relative path (resolved)
     """
     # Make a temp directory to stand in for MEDIA_ROOT
-    desired_media = tm
+    desired_media = tmp_path / "assets"
+    desired_media.mkdir()
+    
+    config = _reload_config(
+        monkeypatch,
+        ALLOW_LOCAL_VIDEO_PATHS = "true",
+        MEDIA_ROOT=str(desired_media)
+    )
+    
+    assert config.ALLOW_LOCAL_VIDEO_PATHS is True
+    assert config.MEDIA_ROOT == desired_media.resolve()
+    
     
