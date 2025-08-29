@@ -30,6 +30,8 @@ APP_ENV: str = os.getenv("APP_ENV", "local")
 PORT: int = _get_int("PORT", 8000)
 STORAGE_BUCKET: str = os.getenv("STORAGE_BUCKET", "")
 USE_EMULATORS: bool = _get_bool("USE_EMULATORS", True)
+ALLOW_LOCAL_VIDEO_PATHS: bool = _get_bool("ALLOW_LOCAL_VIDEO_PATHS", False)
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", "./media")
 
 # Optional: expose what we export (helps with autocomplete)
-__all__ = ["APP_ENV", "PORT", "STORAGE_BUCKET", "USE_EMULATORS"]
+__all__ = ["APP_ENV", "PORT", "STORAGE_BUCKET", "USE_EMULATORS", "ALLOW_LOCAL_VIDEO_PATHS"]
