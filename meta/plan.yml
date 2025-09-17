@@ -58,13 +58,13 @@ days:
   branch: feat/dev-override-path-policy-and-cursor
   objective: Local path override policy + traversal protection + cursor plan
   deliverables:
-  - ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy
-  - Traversal blocking
-  - Cursor design note (composite/opaque)
+    - ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy
+    - Traversal blocking
+    - Cursor design note (composite/opaque)
   tech_debt_resolve:
-  - TD5
-  - TD10
-  - TD11
-  - TD14
+    - TD5
+    - TD10
+    - TD11
+    - TD14
   tech_debt_add:
-  - TD14
+    - TD14
