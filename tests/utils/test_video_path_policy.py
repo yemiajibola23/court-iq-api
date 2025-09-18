@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 from app.utils.video_path_policy import validate_video_path
 import os
+import sys
 
 ALLOWED_EXT_PATHS = {".mp4", ".mov", ".m4v", ".webm"}
 
@@ -75,7 +76,7 @@ def test_rejects_traversal_outside_media_root_when_flag_on(tmp_path):
         
     assert "path must be within MEDIA_ROOT" in str(e.value)
 
-@pytest.mark.skip(reason="Enable after base implementation; optional hardening via symlink resolution")    
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="symlink perms flaky on Windows")   
 def test_rejects_symlink_escape_when_flag_on(tmp_path):
     """
     Create a symlink inside media that points outside; validator should resolve realpath and reject.
@@ -92,6 +93,6 @@ def test_rejects_symlink_escape_when_flag_on(tmp_path):
     os.symlink(target, link)
     
     with pytest.raises(ValueError) as e:
-        validate_video_path("linkdir/secrets.mp4", allow_local=False, media_root=media_root)
+        validate_video_path("linkdir/secrets.mp4", allow_local=True, media_root=media_root)
         
     assert "path must be within MEDIA_ROOT" in str(e.value)

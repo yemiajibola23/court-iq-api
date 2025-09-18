@@ -5,7 +5,8 @@ from uuid import UUID
 from urllib.parse import urlparse, urlsplit
 from pathlib import Path
 import re
-
+import app.core.config as cfg
+from app.utils.video_path_policy import validate_video_path as enforce_path_policy
 # TECH_DEBT: TD4, TD9, TD12  — tighten video_path rules (https only, len≤2048, ext in set), per-field 422 arrays, case-insensitive ext check without mutating URL casing.
 # TECH_DEBT: TD11            — when flags disallow local paths, return specific 422 message per spec.
 
@@ -35,20 +36,7 @@ class PlayCreateRequest(BaseModel):
         if not isinstance(v, str):
             raise ValueError("video_path must be a string")
         
-        v = v.strip()
-        # 1. Accept length ≤ 2048 chars
-        if len(v) > 2048:
-            raise ValueError("video_path must be ≤ 2048 characters") 
-                
-        # 2. Accept http(s) URLs
-        parts = urlsplit(v)
-        if parts.scheme not in {"http", "https"} or not parts.netloc:
-            raise ValueError("video_path must be an http(s) url")
-        
-        # 3. Accept terminal extension (case-insensitive), queries/fragments are fine
-        suffix = Path(parts.path).suffix.lower()
-        if suffix not in ALLOWED_EXTS:
-            raise ValueError("video_path must be a supported format (.mp4, .mov, .m4v, .webm)")
+        kind, _ = enforce_path_policy(v, allow_local=cfg.ALLOW_LOCAL_VIDEO_PATHS, media_root=cfg.MEDIA_ROOT)
 
         return v
 class PlayCreateResponse(BaseModel):
