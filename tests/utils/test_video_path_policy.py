@@ -44,7 +44,7 @@ def test_reject_remote_https_with_bad_extensions(tmp_path):
     
     assert f"unsupported extension; allowed: {', '.join(sorted(ALLOWED_EXT_PATHS))}" in str(e.value)
 
-def test_accepts_file_url_under_media_root_when_flag_on(tmp_path):
+def test_accepts_file_uri_under_media_root_when_flag_on(tmp_path):
     media_root = tmp_path / "media"
     (media_root / "ok").mkdir(parents=True)
     file_path = media_root / "ok" / "foo.mp4"
@@ -61,7 +61,7 @@ def test_accepts_relative_path_under_media_root_when_flag_on(tmp_path):
     file_path = media_root / "clips" / "foo.mov"
     file_path.touch()
     
-    kind, value = validate_video_path(f"lips/foo.mov", allow_local=True, media_root=media_root)
+    kind, value = validate_video_path(f"clips/foo.mov", allow_local=True, media_root=media_root)
     
     assert kind == "local"
     assert Path(value) == file_path.resolve()
@@ -71,7 +71,7 @@ def test_rejects_traversal_outside_media_root_when_flag_on(tmp_path):
     media_root.mkdir()
     
     with pytest.raises(ValueError) as e:
-        validate_video_path("clips/foo.mp4", allow_local=False, media_root=media_root)
+        validate_video_path("../outside.mp4", allow_local=True, media_root=media_root)
         
     assert "path must be within MEDIA_ROOT" in str(e.value)
 
