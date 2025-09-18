@@ -6,7 +6,7 @@ from typing import Callable, List, Dict, Optional
 import uuid
 from app.deps import get_repo
 from pathlib import Path
-
+import os, sys
 
 @pytest.fixture(scope="function")
 def client():
@@ -88,6 +88,3 @@ def seed_many_plays(client) -> Callable[[List[Dict]], List[Dict]]:
         return created
     
     return _seed
-
-def envvars(monkeypatch, *, allow_local=False, media_root: Path):
-    pass
