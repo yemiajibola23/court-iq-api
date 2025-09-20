@@ -9,15 +9,20 @@ from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 def _group_errors(exc: ValidationError | RequestValidationError) -> Dict[str, List[str]]:
     """
     Convert Pydantic/FastAPI validation errors into:
-      { "<field>": ["msg1", "msg2"], "non_field_errors": ["msg"] }
+      { "<field>": ["msg1", "msg2"], "__root__": ["msg"] }
     """
     field_map: Dict[str, List[str]] = {}
     for err in exc.errors():
         loc = err.get("loc", [])
         msg = err.get("msg", "Invalid value")
+        
+        if msg.lower().startswith("value error, "):
+            msg = msg.removeprefix("Value error, ")
+        
+        msg = msg.strip()
 
         # Choose the most specific string element in loc, skipping 'body'/'query'/'path'
-        field = "non_field_errors"
+        field = "__root__"
         for part in reversed(loc):
             if isinstance(part, str) and part not in {"body", "query", "path"}:
                 field = part

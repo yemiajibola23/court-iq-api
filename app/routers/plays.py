@@ -2,7 +2,7 @@ from fastapi import APIRouter, Response, status, HTTPException, Query, Depends
 import uuid
 from typing import Optional, List
 
-from app.schemas.play import PlayCreateRequest, PlayCreateResponse, PlayRead
+from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead
 from app.utils.mappers import to_play_dto
 from app.deps import get_repo
 from app.repositories.plays_repo import PlaysRepository
@@ -13,9 +13,10 @@ from app.repositories.plays_repo import PlaysRepository
 router = APIRouter(prefix="/v1/plays", tags=["plays"])
 
 @router.post("/", response_model=PlayCreateResponse, status_code=status.HTTP_201_CREATED)
-def create_play(payload: PlayCreateRequest, 
+def create_play(payload: PlayCreateRequestJSON, 
                 response: Response, 
                 plays_repo: PlaysRepository=Depends(get_repo)) -> PlayCreateResponse:
+    assert payload.video_path is not None # Guaranteed by model-level validator
     play = plays_repo.create_play(title=payload.title, video_path=payload.video_path)
 
     response.headers["Location"] = f'/v1/plays/{play.id}'

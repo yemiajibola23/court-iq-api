@@ -1,6 +1,6 @@
 from __future__ import annotations
-from pydantic import BaseModel, field_validator, StringConstraints
-from typing import Annotated
+from pydantic import BaseModel, field_validator, StringConstraints, model_validator
+from typing import Annotated, Optional
 from uuid import UUID
 from urllib.parse import urlparse, urlsplit
 from pathlib import Path
@@ -37,6 +37,28 @@ class PlayCreateRequest(BaseModel):
             raise ValueError("video_path must be a string")
         
         kind, _ = enforce_path_policy(v, allow_local=cfg.ALLOW_LOCAL_VIDEO_PATHS, media_root=cfg.MEDIA_ROOT)
+
+        return v
+class PlayCreateRequestJSON(BaseModel):
+    title: str
+    video_path: str | None = None
+    
+    @model_validator(mode="after")
+    def _require_url_when_json(self):
+        if not self.video_path:
+            raise ValueError("either file or video_path is required")
+        else:
+            return self
+        
+    @field_validator("video_path", mode="before")
+    @classmethod
+    def validate_video_path(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        elif not isinstance(v, str):
+            raise ValueError("video_path must be a string")
+        else:
+            enforce_path_policy(v, allow_local=cfg.ALLOW_LOCAL_VIDEO_PATHS, media_root=cfg.MEDIA_ROOT)
 
         return v
 class PlayCreateResponse(BaseModel):

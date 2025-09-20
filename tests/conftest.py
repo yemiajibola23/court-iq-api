@@ -43,7 +43,7 @@ def assert_201_field():
 
 @pytest.fixture(scope="function")
 def assert_422_field():
-    def _assert(res, field: str):
+    def _assert(res, field: str, contains: str | None=None):
         assert res.status_code == 422
         data = res.json()
         
@@ -53,6 +53,9 @@ def assert_422_field():
         assert isinstance(data[field], list) and all(isinstance(m, str) for m in data[field])
         # optional: at least one non-empty message
         assert any(m.strip() for m in data[field])
+        
+        if contains is not None:
+            assert any(contains in m for m in data[field]) , data[field]
     
     return _assert
 
