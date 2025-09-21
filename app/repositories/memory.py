@@ -38,11 +38,38 @@ class MemoryRepository:
                    title_prefix: Optional[str] = None, 
                    before_dt: Optional[datetime] = None, 
                    before_id: Optional[UUID] = None) -> Tuple[List[Play], bool]:
-        """Filter by title prefix, then paginate over stable insertion order.
+        """
+        Return plays filtered by optional title prefix and paginated in a stable,
+        deterministic order (newest first).
 
-        Cursor policy:
-        - cursor must be an id present within the filtered view; otherwise ValueError('invalid_cursor')
-        - results start strictly AFTER the cursor
+        Ordering
+        -------
+        Items are sorted by (created_at DESC, id DESC).
+
+        Pagination semantics
+        --------------------
+        - If `before_dt` and `before_id` are provided, only items with
+        (created_at, UUID(id)) strictly less than that tuple are returned.
+        This makes the page boundary exclusive and prevents duplicates
+        between pages.
+        - At most `limit` items are returned.
+        - The method returns a second boolean, `has_more`, indicating whether
+        additional items exist after this page.
+
+        Notes
+        -----
+        - Title filtering is a case-insensitive, trimmed, prefix match.
+        - This repository does not encode/decode opaque cursor tokens. The
+        router is responsible for mapping (created_at, id) <-> token.
+
+        Args:
+            limit: Maximum number of items to return.
+            title_prefix: Optional case-insensitive prefix to filter titles.
+            before_dt: Optional UTC datetime cutoff from the last item of the previous page.
+            before_id: Optional UUID cutoff paired with `before_dt`.
+
+        Returns:
+            Tuple[List[Play], bool]: (items_on_page, has_more)
         """
          
         rows = self._items.values()
