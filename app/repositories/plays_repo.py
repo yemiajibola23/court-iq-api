@@ -1,5 +1,7 @@
 from typing import Protocol, Optional, Tuple, List, runtime_checkable
 from app.models.play import Play
+from datetime import datetime
+from uuid import UUID
 
 def _assert_protocol(obj: object, proto: type) -> None:
     """
@@ -25,7 +27,7 @@ class PlaysRepository(Protocol):
     def get_play(self, id: str) -> Optional[Play]: ...
 
     # list plays with optional cursor, limit, and title prefix filter
-    def list_plays(self, *, cursor: Optional[str] = None, limit: int = 10, title_prefix: Optional[str] = None) -> Tuple[List[Play], Optional[str]]: ...
+    def list_plays(self, *, limit: int = 10, title_prefix: Optional[str] = None, before_dt: Optional[datetime]=None, before_id:Optional[UUID]=None) -> Tuple[List[Play], Optional[str]]: ...
     
     # delete by id, true if something was deleted
     def delete_play(self, id: str) -> bool: ...

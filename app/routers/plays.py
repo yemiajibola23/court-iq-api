@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Response, status, HTTPException, Query, Depends, Request
-import uuid
+from uuid import UUID
 from typing import Optional, List, cast
 from pathlib import Path
 
@@ -12,6 +12,8 @@ from fastapi.responses import JSONResponse
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from app.services.uploads import validate_and_save_upload
 from fastapi.responses import JSONResponse
+from app.utils.cursor import decode_cursor, encode_cursor
+from datetime import datetime
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
 # TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
@@ -50,7 +52,7 @@ async def create_play(response: Response,
                     case("ok", uri):
                         play = plays_repo.create_play(title=title_str, video_path=uri)
                         response.headers["Location"] = f'/v1/plays/{play.id}'
-                        return PlayCreateResponse(playId=uuid.UUID(play.id))
+                        return PlayCreateResponse(playId=UUID(play.id))
             elif url:
                 return JSONResponse(status_code=422, content={"__root__": ["send URLs as JSON"]})
     else:
@@ -60,7 +62,7 @@ async def create_play(response: Response,
         
         play = plays_repo.create_play(title=obj.title, video_path=obj.video_path)
         response.headers["Location"] = f'/v1/plays/{play.id}'
-        return PlayCreateResponse(playId=uuid.UUID(play.id))
+        return PlayCreateResponse(playId=UUID(play.id))
 
     return JSONResponse(status_code=415, content={"__root__": ["unsupported media type"]})
             
@@ -87,16 +89,25 @@ def list_plays(
         limit = 1
     elif limit > 100:
         limit = 100
+
+    before_dt= None
+    before_id = None
         
-    try:
-        items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
-    except ValueError:
-        return JSONResponse(status_code=422, content={"cursor": ["invalid cursor token"]})
+    if cursor and cursor.strip():
+        try:
+            before_dt, before_id = decode_cursor(cursor)
+        except ValueError:
+            return JSONResponse(status_code=422, content={"cursor": ["invalid cursor token"]})
+        
+    items, has_more = plays_repo.list_plays(limit=limit, title_prefix=title, before_dt=before_dt, before_id=before_id)
+    next_cursor: str | None = None
+        
+    if has_more: 
+        last = items[-1]
+        next_cursor = encode_cursor(last.created_at, UUID(last.id))
     
-    dtos: List[PlayRead] = [to_play_dto(p) for p in items]
-    hasMore = next_cursor is not None
-    
-    return {"data": dtos, "nextCursor": next_cursor, "hasMore": hasMore}
+    dtos: List[PlayRead] = [to_play_dto(p) for p in items]    
+    return {"data": dtos, "nextCursor": next_cursor, "hasMore": has_more}
 
 @router.delete("/{id}")
 def delete_play(id: str,

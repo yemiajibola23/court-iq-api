@@ -6,10 +6,6 @@ from datetime import datetime, timezone
 # TECH_DEBT: TD1, TD8  — replace in-memory store with DB repo; add test-time reset/fixture to avoid cross-test pollution.
 # TECH_DEBT: TD3       — add direct unit tests for repo methods (create/get).
 
-def _utc_iso() -> str:
-    # e.g. 2025-08-23T17:03:12.345678Z
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
 _STORE: Dict[str, Play] = {}
 class MemoryRepository:
     
@@ -27,7 +23,7 @@ class MemoryRepository:
 
     def create_play(self, title: str, video_path: str) -> Play:
         play_id = str(uuid4())
-        play = Play(play_id, title, video_path, created_at=_utc_iso())
+        play = Play(play_id, title, video_path, created_at=datetime.now(timezone.utc))
     
         self._items[play_id] = play
     
@@ -36,40 +32,46 @@ class MemoryRepository:
     def get_play(self, id: str) -> Optional[Play]:
         return self._items.get(id)
 
-    def list_plays(self, *, cursor: Optional[str] = None, limit: int = 10, title_prefix: Optional[str] = None) -> Tuple[List[Play], Optional[str]]:
+    def list_plays(self, 
+                   *, 
+                   limit: int = 10, 
+                   title_prefix: Optional[str] = None, 
+                   before_dt: Optional[datetime] = None, 
+                   before_id: Optional[UUID] = None) -> Tuple[List[Play], bool]:
         """Filter by title prefix, then paginate over stable insertion order.
 
         Cursor policy:
         - cursor must be an id present within the filtered view; otherwise ValueError('invalid_cursor')
         - results start strictly AFTER the cursor
-        - next_cursor is the last id in the page iff more items remain
         """
-        # 1) Keys are in insertion order in Python 3.7+
-        keys = [k for k in self._items if self._matches_prefix(self._items[k].title, title_prefix)]
-    
-        # Normalize limit
-        lim = max(0, int(limit))
-    
-        # 2) Find start index strictly after the cursor
-        if cursor is None:
-            start_idx = 0
+         
+        rows = self._items.values()
+        
+        if title_prefix is not None:
+            q = title_prefix.strip().lower()
+            if q:
+                rows = [p for p in rows if p.title.strip().lower().startswith(q)]
+            else:
+                rows = list(rows)
         else:
-            try:
-                start_idx = keys.index(cursor) + 1
-            except ValueError:
-                raise ValueError("invalid_cursor")
-    
-        # 3) Slice the page
-        end_idx = start_idx + lim
-        page_keys = keys[start_idx:end_idx]
-        items = [ self._items[k] for k in page_keys ]        
-    
-        # 4) Compute next cursor
-        has_more = end_idx < len(keys)
-        next_cursor = page_keys[-1] if (page_keys and has_more) else None
-    
-        return items, next_cursor
-
+            rows = list(rows)
+            
+        rows.sort(key=lambda p: (p.created_at, UUID(p.id)),
+                  reverse=True)
+        
+        if before_dt is not None and before_id is not None:
+            cutoff = (before_dt, before_id)
+            rows = [
+                p for p in rows
+                if (p.created_at, UUID(p.id)) < cutoff
+            ]
+            
+        slice_rows = rows[: limit + 1]
+        has_more = len(slice_rows) > limit
+        page = slice_rows[:limit]
+        
+        return page, has_more
+            
     def delete_play(self, id: str) -> bool:
         removed = self._items.pop(id, None)
     
