@@ -91,3 +91,27 @@ def seed_many_plays(client) -> Callable[[List[Dict]], List[Dict]]:
         return created
     
     return _seed
+class FakeUpload:
+        def __init__(self, data:bytes, filename: str="clip.mp4"):
+            self._data = data
+            self.filename = filename
+            self._pos = 0
+            
+        async def read(self, n: int) -> bytes:
+            chunk = self._data[self._pos:self._pos+n]
+            self._pos += len(chunk)
+            
+            return chunk
+            
+        async def seek(self, pos: int):
+            self._pos = pos
+
+@pytest.fixture
+def fake_upload_factory():
+    def _make(data: bytes, filename: str = "clip.mp4") -> FakeUpload:
+        return FakeUpload(data, filename)
+    return _make
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
