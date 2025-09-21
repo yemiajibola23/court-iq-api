@@ -1,11 +1,16 @@
-from fastapi import APIRouter, Response, status, HTTPException, Query, Depends
+from fastapi import APIRouter, Response, status, HTTPException, Query, Depends, Request
 import uuid
-from typing import Optional, List
+from typing import Optional, List, cast
+from pathlib import Path
 
 from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead
 from app.utils.mappers import to_play_dto
+from app.utils.video_path_policy import ALLOWED_EXTS
 from app.deps import get_repo
 from app.repositories.plays_repo import PlaysRepository
+from fastapi.responses import JSONResponse
+from starlette.datastructures import UploadFile as StarletteUploadFile
+from app.services.uploads import validate_and_save_upload
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
 # TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
@@ -13,15 +18,51 @@ from app.repositories.plays_repo import PlaysRepository
 router = APIRouter(prefix="/v1/plays", tags=["plays"])
 
 @router.post("/", response_model=PlayCreateResponse, status_code=status.HTTP_201_CREATED)
-def create_play(payload: PlayCreateRequestJSON, 
-                response: Response, 
-                plays_repo: PlaysRepository=Depends(get_repo)) -> PlayCreateResponse:
-    assert payload.video_path is not None # Guaranteed by model-level validator
-    play = plays_repo.create_play(title=payload.title, video_path=payload.video_path)
+async def create_play(response: Response, 
+                request: Request,
+                plays_repo: PlaysRepository=Depends(get_repo)) -> Response | PlayCreateResponse:
+    
+    content_type = request.headers.get("content-type", "")
+    
+    if content_type.lower().startswith("multipart/form-data"):
+        form = await request.form()
+        upload = cast(Optional[StarletteUploadFile], form.get("file"))
+        url = cast(Optional[str], form.get("video_path"))
+        title = cast(Optional[str], form.get("title"))
+        title_str = (title or "").strip()
+        
+        if not title_str:
+            return JSONResponse(status_code=422, content={"__root__": ["title required"]})
 
-    response.headers["Location"] = f'/v1/plays/{play.id}'
-    return PlayCreateResponse(playId=uuid.UUID(play.id))
+        if url and upload:
+            return JSONResponse(status_code=422, content={"__root__": ["provide either file or video_path, not both"]})
+        elif not url and not upload:
+            return JSONResponse(status_code=422, content={"__root__": ["either file or video_path is required"]})
+        else:
+            if upload:
+                writer = lambda b: None # (no-op)
+                result = await validate_and_save_upload(upload, writer=writer, allowed_exts=ALLOWED_EXTS, chunk_size=8192)
+                
+                match result:
+                    case("error", field, msg): 
+                        return JSONResponse(status_code=422, content={field: [msg]})
+                    case("ok", uri):
+                        play = plays_repo.create_play(title=title_str, video_path=uri)
+                        response.headers["Location"] = f'/v1/plays/{play.id}'
+                        return PlayCreateResponse(playId=uuid.UUID(play.id))
+            elif url:
+                return JSONResponse(status_code=422, content={"__root__": ["send URLs as JSON"]})
+    else:
+        data = await request.json()
+        obj = PlayCreateRequestJSON.model_validate(data)
+        assert obj.video_path is not None # Guaranteed by model-level validator
+        
+        play = plays_repo.create_play(title=obj.title, video_path=obj.video_path)
+        response.headers["Location"] = f'/v1/plays/{play.id}'
+        return PlayCreateResponse(playId=uuid.UUID(play.id))
 
+    return JSONResponse(status_code=415, content={"__root__": ["unsupported media type"]})
+            
 @router.get("/{id}")
 def get_play(id: str,
              plays_repo: PlaysRepository=Depends(get_repo)):
