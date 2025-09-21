@@ -11,6 +11,7 @@ from app.repositories.plays_repo import PlaysRepository
 from fastapi.responses import JSONResponse
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from app.services.uploads import validate_and_save_upload
+from fastapi.responses import JSONResponse
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
 # TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
@@ -90,7 +91,7 @@ def list_plays(
     try:
         items, next_cursor = plays_repo.list_plays(cursor=cursor, limit=limit, title_prefix=title)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid cursor")
+        return JSONResponse(status_code=422, content={"cursor": ["invalid cursor token"]})
     
     dtos: List[PlayRead] = [to_play_dto(p) for p in items]
     hasMore = next_cursor is not None
