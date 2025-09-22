@@ -2,7 +2,7 @@ import os
 import pytest
 from app.services.uploads import save_upload
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_save_upload_streams_in_fixed_chunks(fake_upload_factory):
     # Arrange
     payload = os.urandom(20_000) # ~20 KB
