@@ -20,6 +20,12 @@ Usage:
                      [--labels "label1,label2"] [--reviewers "alice,bob"]
                      [--title "Day N: Title"] [--body-file path] [--no-push]
 
+Notes:
+  - --labels is optional and may be provided with or without a value.
+    * With a value (e.g., --labels "l1,l2"): applies those labels.
+    * Without a value (e.g., --labels): applies no labels.
+  - --reviewers requires a value if provided.
+
 Behavior:
   - Determines day from --day or meta/plan.yml (current_day)
   - Title defaults to "Day N: <ROADMAP heading>" when possible
@@ -53,7 +59,16 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --base) BASE="$2"; shift 2;;
     --draft) DRAFT=1; shift;;
-    --labels) LABELS="$2"; shift 2;;
+    --labels)
+      # Optional value: if next token exists and doesn't start with '-', consume it.
+      if [[ $# -ge 2 && "${2:0:1}" != "-" ]]; then
+        LABELS="$2"
+        shift 2
+      else
+        LABELS=""
+        shift 1
+      fi
+      ;;
     --reviewers) REVIEWERS="$2"; shift 2;;
     --day) DAY="$2"; shift 2;;
     --title) TITLE="$2"; shift 2;;
