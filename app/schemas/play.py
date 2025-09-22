@@ -15,10 +15,19 @@ RE_UNIX_ABS = re.compile(r"^/[^*?\"<>|]+")
 RE_WIN_ABS  = re.compile(r"^[A-Za-z]:\\[^*?\"<>|]+")
 RE_REL      = re.compile(r"^\.(\.)?[/\\][^*?\"<>|]+")
 ALLOWED_EXTS = {".mp4", ".mov", ".m4v", ".webm"}
-
-class PlayCreateRequest(BaseModel):
+class PlayCreateRequestJSON(BaseModel):
     title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
     video_path: str
+    
+    @field_validator("video_path", mode="before")
+    @classmethod
+    def validate_video_path(cls, v: str) -> str:
+        if not isinstance(v, str):
+            raise ValueError("video_path must be a string")
+        else:
+            enforce_path_policy(v, allow_local=cfg.ALLOW_LOCAL_VIDEO_PATHS, media_root=cfg.MEDIA_ROOT)
+
+        return v
     
     @field_validator("title")
     @classmethod
@@ -28,38 +37,6 @@ class PlayCreateRequest(BaseModel):
         if not v:
             raise ValueError("title must not be empty")
        
-        return v
-    
-    @field_validator("video_path", mode="before")
-    @classmethod
-    def validate_video_path(cls, v: str) -> str:
-        if not isinstance(v, str):
-            raise ValueError("video_path must be a string")
-        
-        kind, _ = enforce_path_policy(v, allow_local=cfg.ALLOW_LOCAL_VIDEO_PATHS, media_root=cfg.MEDIA_ROOT)
-
-        return v
-class PlayCreateRequestJSON(BaseModel):
-    title: str
-    video_path: str | None = None
-    
-    @model_validator(mode="after")
-    def _require_url_when_json(self):
-        if not self.video_path:
-            raise ValueError("either file or video_path is required")
-        else:
-            return self
-        
-    @field_validator("video_path", mode="before")
-    @classmethod
-    def validate_video_path(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return None
-        elif not isinstance(v, str):
-            raise ValueError("video_path must be a string")
-        else:
-            enforce_path_policy(v, allow_local=cfg.ALLOW_LOCAL_VIDEO_PATHS, media_root=cfg.MEDIA_ROOT)
-
         return v
 class PlayCreateResponse(BaseModel):
     playId: UUID   

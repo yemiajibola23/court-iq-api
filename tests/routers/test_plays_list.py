@@ -143,8 +143,8 @@ def test_list_plays_bad_cursor_with_filter_returns_422(client, seed_many_plays):
     body = r.json()
 
     # Arrange
-    assert r.status_code == 400
-    assert "detail" in body and "Invalid cursor" in body["detail"]
+    assert r.status_code == 422
+    assert "cursor" in body and "invalid cursor token" in body["cursor"]
 
 def test_list_plays_sets_default_limit_of_10(client, seed_many_plays):
     # Arrange

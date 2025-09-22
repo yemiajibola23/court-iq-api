@@ -2,6 +2,7 @@
 from uuid import uuid4
 from types import SimpleNamespace
 from app.repositories.memory import MemoryRepository
+import json
 
 def test_post_422_neither_file_nor_url(client, assert_422_field):
     # Arrange
@@ -11,6 +12,18 @@ def test_post_422_neither_file_nor_url(client, assert_422_field):
     res = client.post("/v1/plays", json=payload)
     
     # Assert 
+    assert_422_field(res, "video_path")
+    
+def test_post_multipart_422_neither_file_nor_url(client, assert_422_field):
+     # Arrange
+    payload = {"title": "valid"}
+    data = json.dumps(payload).encode()
+    files = {"title" : (None, "valid")}
+    
+    # Act 
+    res = client.post("/v1/plays", files=files)
+    
+    # Assert
     assert_422_field(res, "__root__", contains="either file or video_path is required")
     
 def test_post_422_both_file_and_url(client, assert_422_field):
