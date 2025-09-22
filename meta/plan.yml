@@ -81,20 +81,6 @@ days:
   tech_debt_resolve: []
   tech_debt_add: []
 
-
-  - day: 13
-  branch: feat/storage-public-preview-urls
-  objective: Public/Preview Video URLs
-  deliverables:
-    - Generate public/preview URL field on play read
-    - Tests: URL shape and fallback when restricted
-    - Schemas: add 'videoUrl' and 'thumbnailUrl'
-    - Thumbnail placeholder generator hook
-    - 'Docs: client usage & caching hints'
-  tech_debt_resolve:
-  - TD6
-  tech_debt_add: []
-
 - day: 14
   branch: feat/storage-delete-with-play
   objective: Delete Video with Play
