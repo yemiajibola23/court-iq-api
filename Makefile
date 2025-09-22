@@ -174,21 +174,32 @@ DESC ?=
 FLAGS ?=
 
 day-start: ## Run to start each day
-	@if [ -z "$(DAY)"]; then \
-		echo "Usage make day-start DAY=11 [TYPE=feat] [DESC=\"...\"] [FLAGS=--dry-run]"; \
-		exit; \
+	@if [ -z "$(DAY)" ]; then \
+		echo "Usage: make day-start DAY=11 [TYPE=feat] [DESC=\"...\"] [FLAGS=--dry-run]"; \
+		exit 1; \
 	fi
 	@echo "→ python tools/day_start.py --day $(DAY) --type $(TYPE) --desc '$(DESC)' $(FLAGS)"
 	@python tools/day_start.py --day $(DAY) \
-	$(if $(TYPE), --type $(TYPE),) \
-	$(if $(DESC), --desc "$(DESC)",) \
-	$(FLAGS)
+		$(if $(TYPE), --type $(TYPE),) \
+		$(if $(DESC), --desc "$(DESC)",) \
+		$(FLAGS)
+
+	@echo "→ Ensuring ROADMAP Day $(DAY) section & objective"
+	@python tools/ensure_day_in_roadmap.py || true
+
+	@echo "→ Syncing plan ↔ ROADMAP tech-debt (Day $(DAY))"
+	@python tools/tech_debt.py sync --day $(DAY) --apply || true
+
+	@echo "→ Validating plan alignment"
+	@python tools/validate_plan.py || true
+
+	@echo "✅ Kickoff checks complete."
 
 # Optional knobs
 EOD_SCOPE ?=           # e.g., storage — forwarded to tech_debt.py sync
 PR_BASE   ?= dev       # default branch
 PR_DRAFT  ?= 1         # set empty to open a non-draft PR
-PR_LABELS ?= day-$(DAY),auto-eod
+PR_LABELS ?= 
 PR_REVIEWERS ?=        # comma-separated GitHub handles
 PR_BODY_DIR ?= notes/pr
 
@@ -218,7 +229,7 @@ pr-body: ## Build PR body from meta/plan.yml into notes/pr/day{N}-pr.md
 	@echo "📝 PR body -> $(PR_BODY_DIR)/day$(DAY)-pr.md"
 
 eod-pr: eod eod-commit ## Run EOD, then push and open a PR (requires gh)
-	@./scripts/open_pr.sh $(if $(DAY),--day $(DAY),) --base "$(PR_BASE)" \
+	@./scripts/open_pr.sh $(if $(DAY),--day $(DAY),) --base "$(strip$(PR_BASE))" \
 		$(if $(PR_DRAFT),--draft,) \
 		$(if $(PR_LABELS),--labels "$(PR_LABELS)",) \
 		$(if $(PR_REVIEWERS),--reviewers "$(PR_REVIEWERS)",)

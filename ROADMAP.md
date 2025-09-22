@@ -98,16 +98,20 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] ✨ feat(api): global 422 handler with per-field arrays (D11-6)
 - [x] 📝 docs: README error examples; update TECH_DEBT resolved items (TD1, TD12; TD4/TD9 once implemented) (D11-7)
 
-## Day 12 – Video Upload on Create
+## Day 12 – Local path override policy + traversal protection + cursor plan
 
-- [ ] ✨ feat(api): `POST /v1/plays` supports multipart upload OR external URL (D12-1)
-- [ ] ✅ test(api): multipart upload path; url path; invalid types (D12-2)
-- [ ] 🪄 perf(storage): stream upload and content-type detection (D12-3)
-- [ ] 🔨 refactor(services): move upload logic out of router (D12-4)
-- [ ] 📝 docs: curl/HTTPie examples for uploads (D12-5)
-- [ ] 💳 techdebt(api): Dev-override flags: ALLOW_LOCAL_VIDEO_PATHS / MEDIA_ROOT (allow file:// + relative under MEDIA_ROOT only when flag is true) (TD5)
-- [ ] 💳 techdebt(api): Dev-override UX: precise 422 message like ["local file paths are not allowed in this environment"] when flag is off (TD11)
-- [ ] 💳 techdebt(api): Cursor design: move from plain id to composite/opaque token (e.g., created_at) after DB migration (TD14)
+**Objective:** Local path override policy + traversal protection + cursor plan
+
+- [x] ✨ feat(api): `POST /v1/plays` supports multipart upload OR external URL (D12-1)
+- [x] ✅ test(api): multipart upload path; url path; invalid types (D12-2)
+- [x] 🪄 perf(storage): stream upload and content-type detection (D12-3)
+- [x] 🔨 refactor(services): move upload logic out of router (D12-4)
+- [x] 📝 docs: curl/HTTPie examples for uploads (D12-5)
+- [x] 💳 techdebt(api): Dev-override flags: ALLOW_LOCAL_VIDEO_PATHS / MEDIA_ROOT (allow file:// + relative under MEDIA_ROOT only when flag is true) (TD5)
+- [x] 💳 techdebt(api): Dev-override UX: precise 422 message like ["local file paths are not allowed in this environment"] when flag is off (TD11)
+- [X] 💳 techdebt(api): Cursor design: move from plain id to composite/opaque token (e.g., created_at) after DB migration (TD14)
+
+- [x] 💳 techdebt: Dev-override security: prevent path traversal outside `MEDIA_ROOT` (e.g., `../`) (TD10)
 
 ## Day 13 – Public/Preview Video URLs
 

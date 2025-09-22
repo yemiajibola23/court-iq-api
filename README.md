@@ -33,10 +33,8 @@ uvicorn app.main:app --reload --port 8000
 ## Endpoints (v0)
 
 - `GET /health` → `{"ok": true}`
-- `POST /v1/plays` → create new play (returns UUID)
-- `GET /v1/plays/{id}` → fetch single play
-- `GET /v1/plays/` → list plays with **cursor pagination + title filter**
-- `DELETE /v1/plays/{id}` → delete play by ID
+- `POST /v1/plays` → `{"playId": "<uuid>"}`  
+  _Body_: `{"title": "Test Play", "video_path": "gs://bucket/plays/demo/raw.mp4"}`
 
 > Note: v0 returns a UUID only; Firestore persistence and background processing land in the next slice.
 
@@ -51,26 +49,17 @@ requirements.txt
 pytest.ini           # adds repo root to PYTHONPATH
 ```
 
-## Development Workflow
+## Dev scripts (suggested)
 
-This repo uses **automation helpers** to keep docs, roadmap, and code aligned:
+You can use these one-liners or add a `Makefile` later:
 
--   **Pre-commit hooks**\
-    Run automatically on commit. Includes `docs-refresh` which keeps `docs/SCRIPTS.md` up-to-date with stable timestamps.\
-    Install with:
+```bash
+# start dev
+uvicorn app.main:app --reload --port 8000
 
-    ```bash
-    pre-commit install
-    ```
-
--   **Validators**
-
-    -   `tools/validate_structure.py` → checks repo layout + docs alignment
-
-    -   `tools/validate_plan.py` → ensures `ROADMAP.md` ↔ `plan.yml` consistency
-
--   **Daily Contributor Flow**\
-    See <CONTRIBUTING.md> for branch naming, commit style, PR checklist, and troubleshooting.
+# run tests
+pytest -q
+```
 
 ## Python version pin
 
@@ -81,7 +70,10 @@ This project targets **Python 3.12** because `pydantic-core`’s Rust binding (P
   ```
   3.12.5
   ```
+## API
 ## API Examples
+
+For full request/response examples (JSON uploads, multipart file uploads, and precise 422 validation formats), see **[docs/api/plays.md](docs/api/plays.md)**.
 
 ### POST `/v1/plays`
 
@@ -96,11 +88,7 @@ Create a new play.
 ```
 **Validation**
 - `title`: required, non-empty (whitespace trimmed, 1–120 chars).
-- `video_path`: required; 
-  - must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...)
-  - Max length: 2048
-  - extensions allowed: mp4, mov, m4v, webm
-
+- `video_path`: required; must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...).
 
 **Response**
 - 201 Created
@@ -131,7 +119,7 @@ curl -i -X POST http://127.0.0.1:8000/v1/plays \
 http POST :8000/v1/plays title="  " video_path="https://example.com/clip.mp4"
 ```
 
-### GET `/v1/plays/{id}`
+### GET /v1/plays/{id}
 
 Returns a Play DTO.
 
@@ -169,8 +157,7 @@ http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
   "data": [
     { "id": "f7b3…", "title": "Alpha Cut", "video_path": "https://…" }
   ],
-  "nextCursor": "3c9e…",  // null when no more results
-  "hasMore": true 
+  "nextCursor": "3c9e…"  // null when no more results
 }
 ```
 
@@ -186,8 +173,7 @@ curl -s 'http://localhost:8000/v1/plays?limit=2'
     {"id":"…","title":"Alpha Cut","video_path":"…"},
     {"id":"…","title":"Alpha Spain","video_path":"…"}
   ],
-  "nextCursor":"<id-of-Alpha-Spain>",
-  "hasMore": false
+  "nextCursor":"<id-of-Alpha-Spain>"
 }
 
 ```
@@ -213,6 +199,7 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
 
 **Query params**
 
+
 **Response shape**
 ```json
 {
@@ -222,31 +209,6 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
   "nextCursor": "9e1d3a28-..."   // null when no more results
 }
 ```
-
-### DELETE `/v1/plays/{id}` — Delete Play by ID
-
-**Path params**
-- `id` — UUID of the Play to delete
-
-**Response codes**
-- **204 No Content** — Play deleted successfully  
-- **404 Not Found** — No Play exists with that id
-
-**Response shape**
-```json
-// 204 → empty body
-{}
-
-// 404 → standardized error schema
-{ "detail": "Play not found" }
-```
-
-**Examples**
-**curl**
-```bash
-curl -X DELETE http://localhost:8000/v1/plays/2b9e4f7b-1234-5678-9abc-def012345678
-```
-
 
 ## Contributing
 
@@ -265,11 +227,3 @@ Before you start, please read our [Contributing Guidelines](CONTRIBUTING.md) and
 
 - **Pydantic build error on 3.13**  
   Use Python **3.12.x** (e.g., `pyenv local 3.12.5`), recreate `.venv`, reinstall deps.
-
-- **Docs-refresh keeps failing**
-  Run:
-  ```bash
-  pre-commit clean
-  pre-commit install
-  pre-commit run docs-refresh --all-files
-  ```

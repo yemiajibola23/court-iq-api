@@ -20,6 +20,12 @@ Usage:
                      [--labels "label1,label2"] [--reviewers "alice,bob"]
                      [--title "Day N: Title"] [--body-file path] [--no-push]
 
+Notes:
+  - --labels is optional and may be provided with or without a value.
+    * With a value (e.g., --labels "l1,l2"): applies those labels.
+    * Without a value (e.g., --labels): applies no labels.
+  - --reviewers requires a value if provided.
+
 Behavior:
   - Determines day from --day or meta/plan.yml (current_day)
   - Title defaults to "Day N: <ROADMAP heading>" when possible
@@ -28,10 +34,6 @@ Behavior:
       2) notes/pr/dayN-pr.md (if present), or
       3) generated via tools/gen_pr_body.py --day N
   - Pushes current branch and opens a PR to --base
-
-Examples:
-  scripts/open_pr.sh --day 11 --base dev --labels "day-11,auto-eod" --draft
-  scripts/open_pr.sh --body-file notes/pr/day11-pr.md
 EOF
 }
 
@@ -53,7 +55,16 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --base) BASE="$2"; shift 2;;
     --draft) DRAFT=1; shift;;
-    --labels) LABELS="$2"; shift 2;;
+    --labels)
+      # Optional value: if next token exists and doesn't start with '-', consume it.
+      if [[ $# -ge 2 && "${2:0:1}" != "-" ]]; then
+        LABELS="$2"
+        shift 2
+      else
+        LABELS=""
+        shift 1
+      fi
+      ;;
     --reviewers) REVIEWERS="$2"; shift 2;;
     --day) DAY="$2"; shift 2;;
     --title) TITLE="$2"; shift 2;;
@@ -64,8 +75,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# --- Normalize inputs (trim whitespace) -------------------------------------
+trim() { echo "$1" | awk '{$1=$1; print}'; }  # portable trim
+BASE="$(trim "$BASE")"
+LABELS="$(trim "$LABELS")"
+REVIEWERS="$(trim "$REVIEWERS")"
+
 # --- Preconditions ----------------------------------------------------------
 command -v gh >/dev/null || { echo "❌ gh CLI not found"; exit 1; }
+command -v git >/dev/null || { echo "❌ git not found"; exit 1; }
 
 # --- Determine day ----------------------------------------------------------
 if [[ -z "$DAY" ]]; then
@@ -91,6 +109,21 @@ fi
 
 # --- Figure out branch and ensure it's pushed -------------------------------
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Ensure base exists on origin and fetch it
+git fetch origin --quiet || true
+if ! git show-ref --verify --quiet "refs/remotes/origin/$BASE"; then
+  echo "❌ Base branch 'origin/$BASE' not found. Use --base dev or set PR_BASE=dev." >&2
+  exit 2
+fi
+
+# Preflight: ensure there are commits between base and HEAD
+if [[ -z "$(git log --oneline "origin/$BASE..HEAD" | head -n1)" ]]; then
+  echo "ℹ️ No commits between origin/$BASE and HEAD; nothing to PR." >&2
+  exit 3
+fi
+
+# Push current branch if needed
 if [[ "$NO_PUSH" -eq 0 ]]; then
   if ! git rev-parse --symbolic-full-name --verify -q "@{u}" >/dev/null; then
     git push -u origin "$BRANCH"
@@ -146,7 +179,7 @@ args=(pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body-file "$B
 if [[ -n "$LABELS" ]]; then
   IFS=',' read -r -a _labels <<< "$LABELS"
   for l in "${_labels[@]}"; do
-    l_trim="$(echo "$l" | xargs)"
+    l_trim="$(echo "$l" | awk '{$1=$1; print}')"   # trim each label
     [[ -n "$l_trim" ]] && args+=(--label "$l_trim")
   done
 fi
@@ -155,10 +188,10 @@ fi
 if [[ -n "$REVIEWERS" ]]; then
   IFS=',' read -r -a _revs <<< "$REVIEWERS"
   for r in "${_revs[@]}"; do
-    r_trim="$(echo "$r" | xargs)"
+    r_trim="$(echo "$r" | awk '{$1=$1; print}')"   # trim each reviewer
     [[ -n "$r_trim" ]] && args+=(--reviewer "$r_trim")
   done
 fi
 
-echo "🔗 Opening PR to base='$BASE' from head='$BRANCH' with title: $TITLE"
+echo "🔗 Opening PR to base='${BASE}' from head='${BRANCH}' with title: ${TITLE}"
 gh "${args[@]}"

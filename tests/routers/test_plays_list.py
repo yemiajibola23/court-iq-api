@@ -16,16 +16,16 @@ def test_list_plays_pagination_happy_path(client, seed_many_plays):
     b1 = r1.json()
     
     assert r1.status_code == 200
-    assert [p["title"] for p in b1["data"]] == ["Alpha Cut", "Alpha Spain"]
-    assert b1["nextCursor"] == created[1]["id"]
+    assert [p["title"] for p in b1["data"]] == ["Delta Split", "Charlie Spain"]
+    assert b1["nextCursor"] is not None and b1["nextCursor"]
     
     # Page 2
     r2 = client.get("/v1/plays", params={"limit": 2, "cursor": b1["nextCursor"]})
     b2 = r2.json()
     
     assert r2.status_code == 200
-    assert [p["title"] for p in b2["data"]] == ["Bravo Ghost", "Charlie Spain"]
-    assert b2["nextCursor"] == created[3]["id"]
+    assert [p["title"] for p in b2["data"]] == ["Bravo Ghost", "Alpha Spain"]
+    assert b2["nextCursor"] is not None and b2["nextCursor"]
     
     
     # Page 3
@@ -33,7 +33,7 @@ def test_list_plays_pagination_happy_path(client, seed_many_plays):
     b3 = r3.json()
     
     assert r3.status_code == 200
-    assert [p["title"] for p in b3["data"]] == ["Delta Split"]
+    assert [p["title"] for p in b3["data"]] == ["Alpha Cut"]
     assert b3.get("nextCursor") in (None, )
     
 def test_list_plays_title_prefix_filter_happy_path(client, seed_many_plays):
@@ -50,7 +50,7 @@ def test_list_plays_title_prefix_filter_happy_path(client, seed_many_plays):
     b = r.json()
 
     assert r.status_code == 200
-    assert [p["title"] for p in b["data"]] == ["Alpha Cut", "Alpha Spain"]
+    assert [p["title"] for p in b["data"]] == ["Alpha Spain", "Alpha Cut"]
     # exactly two results → no more pages
     assert b.get("nextCursor") in (None,)
 
@@ -67,15 +67,15 @@ def test_list_plays_title_prefix_filter_with_pagination(client, seed_many_plays)
     r1 = client.get("/v1/plays", params={"limit": 1, "title": "Alpha"})
     b1 = r1.json()
     assert r1.status_code == 200
-    assert [p["title"] for p in b1["data"]] == ["Alpha Cut"]
+    assert [p["title"] for p in b1["data"]] == ["Alpha Spain"]
     # nextCursor should be the id of "Alpha Cut"
-    assert b1["nextCursor"] == created[0]["id"]
+    assert b1["nextCursor"] is not None and b1["nextCursor"]
 
     # Page 2: continue within same filter
     r2 = client.get("/v1/plays", params={"limit": 1, "title": "Alpha", "cursor": b1["nextCursor"]})
     b2 = r2.json()
     assert r2.status_code == 200
-    assert [p["title"] for p in b2["data"]] == ["Alpha Spain"]
+    assert [p["title"] for p in b2["data"]] == ["Alpha Cut"]
     # no more "Alpha..." items
     assert b2.get("nextCursor") in (None,)
 
@@ -91,56 +91,73 @@ def test_list_plays_filter_no_matches_returns_empty_200(client, seed_many_plays)
     assert b.get("nextCursor") in (None,)
 
 
-def test_list_plays_cursor_at_end_returns_empty_page(client, seed_many_plays):
+def test_list_plays_last_page_has_no_next_cursor(client, seed_many_plays):
+    # Arrange
     created = seed_many_plays([
         {"title": "A1"},
         {"title": "A2"},
         {"title": "A3"},
     ])
-    # cursor = last id → empty page, nextCursor null
-    r = client.get("/v1/plays", params={"limit": 10, "cursor": created[-1]["id"]})
+    
+    # Page 1
+    r = client.get("/v1/plays", params={"limit": 2})
     b = r.json()
     assert r.status_code == 200
-    assert [p["title"] for p in b["data"]] == []
-    assert b.get("nextCursor") in (None,)
+    assert len(b["data"]) == 2
+    assert b["nextCursor"] is not None and b["nextCursor"]
+    
+    # Page 2
+    r2 = client.get("/v1/plays", params={"limit": 2, "cursor": b["nextCursor"]})
+    b2 = r2.json()
+    assert len(b2["data"]) == 1    
+    assert b2.get("nextCursor") in (None,)
 
 
 def test_list_plays_bad_cursor_returns_400(client, seed_many_plays):
+    # Arrange
     seed_many_plays([
         {"title": "Alpha Cut"},
         {"title": "Alpha Spain"},
     ])
+    
+    # Act
     r = client.get("/v1/plays", params={"limit": 2, "cursor": "bogus-id"})
-    assert r.status_code == 400
+    
+    # Assert
+    assert r.status_code == 422
     body = r.json()
-    # FastAPI default error envelope uses "detail"
-    assert "detail" in body and "Invalid cursor" in body["detail"]
+    assert "cursor" in body and "invalid cursor token" in body["cursor"]
 
 
-def test_list_plays_bad_cursor_with_filter_returns_400(client, seed_many_plays):
+def test_list_plays_bad_cursor_with_filter_returns_422(client, seed_many_plays):
+    # Arrange
     created = seed_many_plays([
         {"title": "Alpha Cut"},
         {"title": "Bravo Ghost"},
     ])
+    
+    # Act
     # Supply a real id that does NOT match the filter subset → invalid within the filtered view
     wrong_subset_cursor = created[1]["id"]  # "Bravo Ghost"
     r = client.get("/v1/plays", params={"limit": 2, "title": "Alpha", "cursor": wrong_subset_cursor})
-    assert r.status_code == 400
     body = r.json()
-    assert "detail" in body and "Invalid cursor" in body["detail"]
+
+    # Arrange
+    assert r.status_code == 422
+    assert "cursor" in body and "invalid cursor token" in body["cursor"]
 
 def test_list_plays_sets_default_limit_of_10(client, seed_many_plays):
+    # Arrange
     seed_many_plays([{f"title": "Alpha Cut {i:02d}"} for i in range(12)])
     
+    # Act
     r1 = client.get("/v1/plays")
-    assert r1.status_code == 200
-
     b1 = r1.json()
+
+    # Assert
+    assert r1.status_code == 200
     assert len(b1["data"]) == 10
     assert b1["nextCursor"] is not None
-
-    last_id_on_page = b1["data"][-1]["id"]
-    assert b1["nextCursor"] == last_id_on_page
 
 @pytest.mark.parametrize("limit", [0, -5])   
 def test_list_limit_below_min_is_clamped_to_1(client, seed_many_plays, limit):
@@ -176,9 +193,9 @@ def test_list_plays_clamps_limit_high_to_100(client, seed_many_plays):
 
     # Follow the cursor and ensure the remainder (20) is returned
     cursor = b1["nextCursor"]
-    # sanity: looks like a uuid-ish id
-    uuid.UUID(cursor)
     r2 = client.get(f"/v1/plays?cursor={cursor}&limit=1000")
+    
+    # Assert
     assert r2.status_code == 200
     b2 = r2.json()
     assert len(b2["data"]) == 20

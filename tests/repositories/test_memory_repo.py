@@ -1,6 +1,8 @@
 import pytest
 from app.repositories.memory import MemoryRepository
 from app.repositories.plays_repo import PlaysRepository, _assert_protocol
+from uuid import UUID
+from datetime import datetime, timezone
 
 @pytest.fixture
 def repo():
@@ -37,28 +39,48 @@ def test_delete_then_delete_again(repo):
 
 def test_list_default_limit_10(repo):
     _seed(repo, 13)
-    items, cur = repo.list_plays(cursor=None, limit=10, title_prefix=None)
+    items, has_more = repo.list_plays(limit=10, before_dt=None, before_id=None, title_prefix=None)
     assert len(items) == 10
-    assert cur == items[-1].id
+    assert has_more == True
 
 def test_list_cursor_paginates(repo):
+    # Arrange
     _seed(repo, 12)
-    p1, c1 = repo.list_plays(limit=7, cursor=None, title_prefix=None)
-    p2, c2 = repo.list_plays(limit=7, cursor=c1, title_prefix=None)
-    assert len(p1) == 7
-    assert len(p2) == 5
-    assert c2 is None
-    assert set(x.id for x in p1).isdisjoint(set(x.id for x in p2))
+    
+    # Act & Assert
+    items, h1= repo.list_plays(limit=7, before_dt=None, before_id=None, title_prefix=None)
+    assert len(items) == 7
+    assert h1 == True
+    
+    last = items[-1]
+    items2, h2 = repo.list_plays(before_dt=last.created_at, before_id=UUID(last.id), title_prefix=None)
+    assert len(items2) == 5
+    assert h2 == False
+    
 
 def test_list_title_prefix_filter_is_case_insensitive_and_trimmed(repo):
+    # Arrange
     repo.create_play("Alpha", "https://e.com/a.mp4")
     repo.create_play("alpha spain", "https://e.com/b.mp4")
     repo.create_play("Beta", "https://e.com/c.mp4")
-    items, cur = repo.list_plays(limit=10, cursor=None, title_prefix="  AlPh  ")
-    assert [p.title for p in items] == ["Alpha", "alpha spain"]
-    assert cur is None
+    
+    # Act
+    items, has_more = repo.list_plays(limit=10, title_prefix="  AlPh  ")
+    
+    # Assert
+    assert [p.title for p in items] == ["alpha spain", "Alpha"]
+    assert has_more == False
+    
 
-def test_list_raises_value_error_for_invalid_cursor(repo):
+def test_list_handles_nonexistent_cutoff_gracefully(repo):
+    # Arrange
     _seed(repo, 3)
-    with pytest.raises(ValueError):
-        repo.list_plays(limit=2, cursor="not-in-store", title_prefix=None)
+    before_dt = datetime(1992, 9, 18, 12, 34, 56, 789000, tzinfo=timezone.utc)
+    before_id = UUID("12345678-1234-5678-1234-567812345678")
+    
+    # Act
+    items, has_more = repo.list_plays(limit=2, before_dt=before_dt, before_id=before_id)
+    
+    # Assert
+    assert len(items) == 0
+    assert has_more is False

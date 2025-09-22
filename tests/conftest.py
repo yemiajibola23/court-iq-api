@@ -5,6 +5,8 @@ from app.repositories.memory import MemoryRepository
 from typing import Callable, List, Dict, Optional
 import uuid
 from app.deps import get_repo
+from pathlib import Path
+import os, sys
 
 @pytest.fixture(scope="function")
 def client():
@@ -41,7 +43,7 @@ def assert_201_field():
 
 @pytest.fixture(scope="function")
 def assert_422_field():
-    def _assert(res, field: str):
+    def _assert(res, field: str, contains: str | None=None):
         assert res.status_code == 422
         data = res.json()
         
@@ -51,6 +53,9 @@ def assert_422_field():
         assert isinstance(data[field], list) and all(isinstance(m, str) for m in data[field])
         # optional: at least one non-empty message
         assert any(m.strip() for m in data[field])
+        
+        if contains is not None:
+            assert any(contains in m for m in data[field]) , data[field]
     
     return _assert
 
@@ -86,3 +91,27 @@ def seed_many_plays(client) -> Callable[[List[Dict]], List[Dict]]:
         return created
     
     return _seed
+class FakeUpload:
+        def __init__(self, data:bytes, filename: str="clip.mp4"):
+            self._data = data
+            self.filename = filename
+            self._pos = 0
+            
+        async def read(self, n: int) -> bytes:
+            chunk = self._data[self._pos:self._pos+n]
+            self._pos += len(chunk)
+            
+            return chunk
+            
+        async def seek(self, pos: int):
+            self._pos = pos
+
+@pytest.fixture
+def fake_upload_factory():
+    def _make(data: bytes, filename: str = "clip.mp4") -> FakeUpload:
+        return FakeUpload(data, filename)
+    return _make
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"

@@ -5,6 +5,7 @@
   - [tools/commit_effects.py](#sec-tools-commit-effects-py)
   - [tools/day_start.py](#sec-tools-day-start-py)
   - [tools/docgen_scripts.py](#sec-tools-docgen-scripts-py)
+  - [tools/ensure_day_in_roadmap.py](#sec-tools-ensure-day-in-roadmap-py)
   - [tools/eod.py](#sec-tools-eod-py)
   - [tools/gen_pr_body.py](#sec-tools-gen-pr-body-py)
   - [tools/learning_log.py](#sec-tools-learning-log-py)
@@ -39,7 +40,7 @@ Message conventions:
 **`--help` output:**
 
 ```text
-[commit-effects] ids_to_tick=['D11-1', 'D11-6']
+[commit-effects] ids_to_tick=[]
 ```
 
 ### `tools/day_start.py`
@@ -111,6 +112,16 @@ options:
   --default-branch DEFAULT_BRANCH
   --check               Check if output would change; do not write; exit 1 if
                         different
+```
+
+### `tools/ensure_day_in_roadmap.py`
+<a id="sec-tools-ensure-day-in-roadmap-py"></a>
+_Source: [tools/ensure_day_in_roadmap.py](https://github.com/yemiajibola23/court-iq-api/blob/dev/tools/ensure_day_in_roadmap.py)_
+
+**`--help` output:**
+
+```text
+(no help output)
 ```
 
 ### `tools/eod.py`
@@ -387,6 +398,12 @@ Usage:
                      [--labels "label1,label2"] [--reviewers "alice,bob"]
                      [--title "Day N: Title"] [--body-file path] [--no-push]
 
+Notes:
+  - --labels is optional and may be provided with or without a value.
+    * With a value (e.g., --labels "l1,l2"): applies those labels.
+    * Without a value (e.g., --labels): applies no labels.
+  - --reviewers requires a value if provided.
+
 Behavior:
   - Determines day from --day or meta/plan.yml (current_day)
   - Title defaults to "Day N: <ROADMAP heading>" when possible
@@ -395,10 +412,6 @@ Behavior:
       2) notes/pr/dayN-pr.md (if present), or
       3) generated via tools/gen_pr_body.py --day N
   - Pushes current branch and opens a PR to --base
-
-Examples:
-  scripts/open_pr.sh --day 11 --base dev --labels "day-11,auto-eod" --draft
-  scripts/open_pr.sh --body-file notes/pr/day11-pr.md
 ```
 ---
-_Generated on 2025-08-25T00:18:51_
+_Generated on 2025-09-22T00:24:47_

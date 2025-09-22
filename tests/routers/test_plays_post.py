@@ -91,18 +91,6 @@ def test_create_play_422_rejects_unsupported_extensions(client, assert_422_field
 def test_create_play_201_allows_supported_extensions_case_insensitive(client, assert_201_field, url):
     res = client.post("/v1/plays", json={"title": "Valid", "video_path": url})
     assert_201_field(res)
-    
-@pytest.mark.skip(reason="planned Day 11: local paths gated by ALLOW_LOCAL_VIDEO_PATHS=false")
-def test_create_play_422_local_file_path_rejected_when_override_off(): ...
-
-@pytest.mark.skip(reason="planned Day 11: relative paths gated by ALLOW_LOCAL_VIDEO_PATHS=false")
-def test_create_play_422_relative_path_rejected_when_override_off(): ...
-
-@pytest.mark.skip(reason="planned Day 11/12: file:// allowed only when override true (+ type checks)")
-def test_create_play_ok_file_scheme_allowed_with_override(): ...
-
-@pytest.mark.skip(reason="planned Day 11: relative under MEDIA_ROOT allowed when override true")
-def test_create_play_ok_relative_under_media_root_with_override(): ...
 
 def test_create_play_trims_inputs_before_validation(client):
     """Leading/trailing whitespace is trimmed before rules apply."""

@@ -1,4 +1,4 @@
-current_day: 11
+current_day: 12
 days:
 - day: 8
   branch: feat/api-list-plays
@@ -20,7 +20,7 @@ days:
   branch: feat/api-delete-play
   objective: Delete Play
   deliverables:
-  - "DELETE /v1/plays/{id} route \u2192 204"
+  - DELETE /v1/plays/{id} route → 204
   - 404 on unknown id
   - List reflects deletion
   - Router errors tightened
@@ -45,25 +45,26 @@ days:
   branch: feat/sqlite-migration-and-validation
   objective: SQLite migration + video_path validator hardening + 422 envelope
   deliverables:
-    - SQLite-backed repo
-    - HTTPS-only, length, extension checks
-    - 422 per-field array envelope
+  - SQLite-backed repo
+  - HTTPS-only, length, extension checks
+  - 422 per-field array envelope
   tech_debt_resolve:
-    - TD1
-    - TD4
-    - TD9
-    - TD12
+  - TD1
+  - TD4
+  - TD9
+  - TD12
   tech_debt_add: []
 - day: 12
   branch: feat/dev-override-path-policy-and-cursor
   objective: Local path override policy + traversal protection + cursor plan
   deliverables:
-  - ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy
-  - Traversal blocking
-  - Cursor design note (composite/opaque)
+    - ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy
+    - Traversal blocking
+    - Cursor design note (composite/opaque)
   tech_debt_resolve:
-  - TD5
-  - TD10
-  - TD11
+    - TD5
+    - TD10
+    - TD11
+    - TD14
   tech_debt_add:
-  - TD14
+    - TD14
