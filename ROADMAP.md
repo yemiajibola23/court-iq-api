@@ -106,12 +106,12 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] ✅ test(api): multipart upload path; url path; invalid types (D12-2)
 - [x] 🪄 perf(storage): stream upload and content-type detection (D12-3)
 - [x] 🔨 refactor(services): move upload logic out of router (D12-4)
-- [ ] 📝 docs: curl/HTTPie examples for uploads (D12-5)
+- [x] 📝 docs: curl/HTTPie examples for uploads (D12-5)
 - [x] 💳 techdebt(api): Dev-override flags: ALLOW_LOCAL_VIDEO_PATHS / MEDIA_ROOT (allow file:// + relative under MEDIA_ROOT only when flag is true) (TD5)
 - [x] 💳 techdebt(api): Dev-override UX: precise 422 message like ["local file paths are not allowed in this environment"] when flag is off (TD11)
-- [ ] 💳 techdebt(api): Cursor design: move from plain id to composite/opaque token (e.g., created_at) after DB migration (TD14)
+- [X] 💳 techdebt(api): Cursor design: move from plain id to composite/opaque token (e.g., created_at) after DB migration (TD14)
 
-- [ ] 💳 techdebt: Dev-override security: prevent path traversal outside `MEDIA_ROOT` (e.g., `../`) (TD10)
+- [x] 💳 techdebt: Dev-override security: prevent path traversal outside `MEDIA_ROOT` (e.g., `../`) (TD10)
 
 ## Day 13 – Public/Preview Video URLs
 
