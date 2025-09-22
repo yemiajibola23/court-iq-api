@@ -199,7 +199,7 @@ day-start: ## Run to start each day
 EOD_SCOPE ?=           # e.g., storage — forwarded to tech_debt.py sync
 PR_BASE   ?= dev       # default branch
 PR_DRAFT  ?= 1         # set empty to open a non-draft PR
-PR_LABELS ?= day-$(DAY),auto-eod
+PR_LABELS ?= 
 PR_REVIEWERS ?=        # comma-separated GitHub handles
 PR_BODY_DIR ?= notes/pr
 
@@ -229,7 +229,7 @@ pr-body: ## Build PR body from meta/plan.yml into notes/pr/day{N}-pr.md
 	@echo "📝 PR body -> $(PR_BODY_DIR)/day$(DAY)-pr.md"
 
 eod-pr: eod eod-commit ## Run EOD, then push and open a PR (requires gh)
-	@./scripts/open_pr.sh $(if $(DAY),--day $(DAY),) --base "$(PR_BASE)" \
+	@./scripts/open_pr.sh $(if $(DAY),--day $(DAY),) --base "$(strip$(PR_BASE))" \
 		$(if $(PR_DRAFT),--draft,) \
 		$(if $(PR_LABELS),--labels "$(PR_LABELS)",) \
 		$(if $(PR_REVIEWERS),--reviewers "$(PR_REVIEWERS)",)

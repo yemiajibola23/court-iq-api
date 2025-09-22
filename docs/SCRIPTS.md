@@ -412,10 +412,6 @@ Behavior:
       2) notes/pr/dayN-pr.md (if present), or
       3) generated via tools/gen_pr_body.py --day N
   - Pushes current branch and opens a PR to --base
-
-Examples:
-  scripts/open_pr.sh --day 11 --base dev --labels "day-11,auto-eod" --draft
-  scripts/open_pr.sh --body-file notes/pr/day11-pr.md
 ```
 ---
-_Generated on 2025-09-21T23:44:07_
+_Generated on 2025-09-22T00:24:47_
