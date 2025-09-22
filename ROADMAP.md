@@ -115,6 +115,8 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 
 ## Day 13 – Public/Preview Video URLs
 
+**Objective:** Public/Preview Video URLs
+
 - [ ] ✨ feat(storage): generate public/preview URL field on play read (D13-1)
 - [ ] ✅ test(storage): url shape and fallback when restricted (D13-2)
 - [ ] 🔨 refactor(schemas): add `videoUrl` and `thumbnailUrl` (D13-3)
