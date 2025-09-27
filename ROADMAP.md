@@ -143,6 +143,70 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 📝 docs: security trade-offs and TTL defaults (D15-5)
 - [ ] 💳 techdebt(api): Standardize UUID usage across all endpoints (create, read, delete) for consistency (TD19)
 
+## Day 26 – iOS App Skeleton (SwiftUI)
+
+- [ ] ✨ feat(ios): create CourtIQ SwiftUI app project (D26-1)
+- [ ] 🧹 chore(ios): set up bundle ids, targets, schemes (D26-2)
+- [ ] ✨ feat(ios): basic app navigation shell (list → detail) (D26-3)
+- [ ] 📝 docs(ios): build & run instructions (D26-4)
+
+## Day 27 – iOS Plays List
+
+- [ ] ✨ feat(ios): list view fetching `GET /v1/plays` (D27-1)
+- [ ] ✅ test(ios): snapshot UI test for empty + populated lists (D27-2)
+- [ ] 🔨 refactor(ios): data layer with async/await + decoding (D27-3)
+- [ ] 🧹 chore(ios): environment config (base URL) (D27-4)
+- [ ] 📝 docs(ios): API usage sample (D27-5)
+
+## Day 28 – iOS Play Detail + Video
+
+- [ ] ✨ feat(ios): detail screen with title/notes + video player (D28-1)
+- [ ] 🔨 refactor(ios): caching for signed video URL (D28-2)
+- [ ] ✅ test(ios): detail rendering with mock data (D28-3)
+- [ ] 🧹 chore(ios): accessibility labels for key controls (D28-4)
+- [ ] 📝 docs(ios): troubleshooting playback (D28-5)
+
+## Day 29 – iOS Diagram Overlay
+
+- [ ] ✨ feat(ios): render diagram overlay synced to video time (D29-1)
+- [ ] 🪄 perf(ios): throttle redraw, reuse paths (D29-2)
+- [ ] ✅ test(ios): unit tests for frame-to-time mapping (D29-3)
+- [ ] 🔨 refactor(ios): diagram view model to parse JSON (D29-4)
+- [ ] 📝 docs(ios): overlay architecture notes (D29-5)
+
+## Day 30 – iOS Edit Metadata
+
+- [ ] ✨ feat(ios): edit title/notes (PATCH) with optimistic UI (D30-1)
+- [ ] ✅ test(ios): form validation and error states (D30-2)
+- [ ] 🔨 refactor(ios): reusable API client + error mapping (D30-3)
+- [ ] 🧹 chore(ios): loading/empty/error visuals (D30-4)
+- [ ] 📝 docs(ios): UX patterns used (D30-5)
+
+## Day 38 – TestFlight Build (iOS)
+
+- [ ] ✨ feat(ios-devops): set up signing, app IDs, profiles (D38-1)
+- [ ] 🧹 chore(ios-devops): fastlane lane for beta deploy (optional) (D38-2)
+- [ ] ✅ test(ios-devops): archive build succeeds locally (D38-3)
+- [ ] 🧹 chore(ios): app metadata + screenshots placeholders (D38-4)
+- [ ] 📝 docs(ios-devops): TestFlight checklist (D38-5)
+
+## Day 39 – Documentation Pass
+
+- [ ] 📝 docs: expand README with API table and iOS setup (D39-1)
+- [ ] 📝 docs: add `ROADMAP-HYBRID.md` reference and status (D39-2)
+- [ ] 📝 docs: add troubleshooting & FAQ (D39-3)
+- [ ] 🧹 chore: clean TODOs, rename ambiguous symbols (D39-4)
+- [ ] 🧹 chore: tag v0.1.0 and generate changelog (D39-5)
+
+## Day 40 – Bug Fix & Polish Buffer
+
+- [ ] 🚑 fix: address top reported bugs from testing (D40-1)
+- [ ] 💄 style: refine UI spacing/typography on iOS (D40-2)
+- [ ] 🪄 perf: profile slow endpoints and optimize N+1s (D40-3)
+- [ ] 🧹 chore: archive tech-debt items not in scope (D40-4)
+- [ ] 📝 docs: “What’s next” and contribution welcome notes (D40-5)
+
+
 ## Day 16 – Worker Service Skeleton
 
 - [ ] ✨ feat(workers): add processing worker package (separate module) (D16-1)
@@ -224,44 +288,6 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 🪄 perf: parallelize test jobs (D25-4)
 - [ ] 📝 docs: how to run e2e locally (D25-5)
 
-## Day 26 – iOS App Skeleton (SwiftUI)
-
-- [ ] ✨ feat(ios): create CourtIQ SwiftUI app project (D26-1)
-- [ ] 🧹 chore(ios): set up bundle ids, targets, schemes (D26-2)
-- [ ] ✨ feat(ios): basic app navigation shell (list → detail) (D26-3)
-- [ ] 📝 docs(ios): build & run instructions (D26-4)
-
-## Day 27 – iOS Plays List
-
-- [ ] ✨ feat(ios): list view fetching `GET /v1/plays` (D27-1)
-- [ ] ✅ test(ios): snapshot UI test for empty + populated lists (D27-2)
-- [ ] 🔨 refactor(ios): data layer with async/await + decoding (D27-3)
-- [ ] 🧹 chore(ios): environment config (base URL) (D27-4)
-- [ ] 📝 docs(ios): API usage sample (D27-5)
-
-## Day 28 – iOS Play Detail + Video
-
-- [ ] ✨ feat(ios): detail screen with title/notes + video player (D28-1)
-- [ ] 🔨 refactor(ios): caching for signed video URL (D28-2)
-- [ ] ✅ test(ios): detail rendering with mock data (D28-3)
-- [ ] 🧹 chore(ios): accessibility labels for key controls (D28-4)
-- [ ] 📝 docs(ios): troubleshooting playback (D28-5)
-
-## Day 29 – iOS Diagram Overlay
-
-- [ ] ✨ feat(ios): render diagram overlay synced to video time (D29-1)
-- [ ] 🪄 perf(ios): throttle redraw, reuse paths (D29-2)
-- [ ] ✅ test(ios): unit tests for frame-to-time mapping (D29-3)
-- [ ] 🔨 refactor(ios): diagram view model to parse JSON (D29-4)
-- [ ] 📝 docs(ios): overlay architecture notes (D29-5)
-
-## Day 30 – iOS Edit Metadata
-
-- [ ] ✨ feat(ios): edit title/notes (PATCH) with optimistic UI (D30-1)
-- [ ] ✅ test(ios): form validation and error states (D30-2)
-- [ ] 🔨 refactor(ios): reusable API client + error mapping (D30-3)
-- [ ] 🧹 chore(ios): loading/empty/error visuals (D30-4)
-- [ ] 📝 docs(ios): UX patterns used (D30-5)
 
 ## Day 31 – AI Summary
 
@@ -319,29 +345,6 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [ ] 🔨 refactor(config): production env and secrets wiring (D37-4)
 - [ ] 📝 docs: rollout & rollback process (D37-5)
 
-## Day 38 – TestFlight Build (iOS)
-
-- [ ] ✨ feat(ios-devops): set up signing, app IDs, profiles (D38-1)
-- [ ] 🧹 chore(ios-devops): fastlane lane for beta deploy (optional) (D38-2)
-- [ ] ✅ test(ios-devops): archive build succeeds locally (D38-3)
-- [ ] 🧹 chore(ios): app metadata + screenshots placeholders (D38-4)
-- [ ] 📝 docs(ios-devops): TestFlight checklist (D38-5)
-
-## Day 39 – Documentation Pass
-
-- [ ] 📝 docs: expand README with API table and iOS setup (D39-1)
-- [ ] 📝 docs: add `ROADMAP-HYBRID.md` reference and status (D39-2)
-- [ ] 📝 docs: add troubleshooting & FAQ (D39-3)
-- [ ] 🧹 chore: clean TODOs, rename ambiguous symbols (D39-4)
-- [ ] 🧹 chore: tag v0.1.0 and generate changelog (D39-5)
-
-## Day 40 – Bug Fix & Polish Buffer
-
-- [ ] 🚑 fix: address top reported bugs from testing (D40-1)
-- [ ] 💄 style: refine UI spacing/typography on iOS (D40-2)
-- [ ] 🪄 perf: profile slow endpoints and optimize N+1s (D40-3)
-- [ ] 🧹 chore: archive tech-debt items not in scope (D40-4)
-- [ ] 📝 docs: “What’s next” and contribution welcome notes (D40-5)
 
 ## Meta Improvements & Tooling
 
