@@ -13,6 +13,7 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from app.services.uploads import validate_and_save_upload
 from fastapi.responses import JSONResponse
 from app.utils.cursor import decode_cursor, encode_cursor
+from app.presentation.plays import present_play
 from datetime import datetime
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
@@ -66,14 +67,17 @@ async def create_play(response: Response,
 
     return JSONResponse(status_code=415, content={"__root__": ["unsupported media type"]})
             
-@router.get("/{id}")
+@router.get("/{id}", response_model=PlayRead)
 def get_play(id: str,
              plays_repo: PlaysRepository=Depends(get_repo)):
     play = plays_repo.get_play(id)
     if not play:
         raise HTTPException(status_code=404, detail="Play not found")
     
-    return PlayRead(id=play.id, title=play.title, video_path=play.video_path)
+    presented = present_play(play)
+    model = PlayRead.model_validate(presented)
+    
+    return model
 
 @router.get("/")
 def list_plays(

@@ -34,7 +34,7 @@ def _relative_under_media_root(storage_path: Optional[str]) -> Optional[str]:
     
     return rel_path or None
         
-def build_public_urls(play: dict) -> Tuple[Optional[str], Optional[str]]:
+def build_public_urls(play: dict) -> Tuple[Optional[str], str]:
     storage_key = play.get("storage_key") or play.get("storageKey")
     storage_path = play.get("storage_path") or play.get("storagePath")
     
