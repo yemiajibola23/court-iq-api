@@ -198,9 +198,10 @@ def media_root(tmp_path, set_env_and_reload) -> Callable[..., Path]:
     return create
 
 @pytest.fixture
-def make_play_from_media():
+def make_play_from_media() -> Callable[..., tuple[Path, dict[str, str]]]:
     def create(media_root: Path, rel: str = "videos/abc.mp4", *, use_path: bool = True):
-        abs_path = media_root / rel
+        rel_norm = rel.replace("\\", "/")
+        abs_path = media_root / rel_norm
         abs_path.parent.mkdir(parents=True, exist_ok=True)
         abs_path.touch(exist_ok=True)
         if use_path:
