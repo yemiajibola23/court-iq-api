@@ -1,9 +1,10 @@
-from app.schemas.play import PlayRead
+from app.schemas.play import  PlaySummary
 from app.models.play import Play
 from dataclasses import is_dataclass, asdict
 from typing import Any, Optional, Dict, List, cast
-def to_play_dto(p: Play) -> PlayRead:
-    return PlayRead(id=p.id, title=p.title, video_path=p.video_path) 
+
+def to_play_dto(p: Play) -> PlaySummary:
+    return PlaySummary(id=p.id, title=p.title, video_path=p.video_path) 
 
 def _first_str(mapping: Dict[str, Any], names: List[str]) -> Optional[str]:
     """Return first non-empty string found in mapping by trying names in order."""

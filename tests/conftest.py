@@ -2,14 +2,14 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.repositories.memory import MemoryRepository
-from typing import Callable, List, Dict, Optional
+from typing import Callable, List, Dict, Optional, Tuple, Union, Iterable
 import uuid
 from app.deps import get_repo
 from pathlib import Path
 import os, sys
 import importlib
-import app.core.config as cfg
 import app.services.url_resolver as resolver
+from importlib import import_module, reload
 
 @pytest.fixture(scope="function")
 def client():
@@ -120,45 +120,56 @@ def anyio_backend():
     return "asyncio"
 
 
+# Optional: keep sticky values from leaking between tests
+@pytest.fixture(autouse=True)
+def _neutralize_env(monkeypatch) -> None:
+    # Ensure these exist (even as ""), so python-dotenv won't refill them
+    for k in ("PUBLIC_CDN_BASE", "LOCAL_STATIC_BASE", "ALLOW_LOCAL_PREVIEW"):
+        monkeypatch.setenv(k, "")
+    # no yield needed
+    
 @pytest.fixture
-def set_env_and_reload(monkeypatch):
+def set_env_and_reload(monkeypatch) -> Callable[..., Tuple[object, object]]:
     """
-    Factory: set URL-policy env vars and reload cfg/resolver hermetically.
-    Usage:
-      set_env_and_reload(app_env="local",
-                         media_root=str(tmp_path/"media"),
-                         public_cdn="https://cdn.local",
-                         local_static_base=None,
-                         allow_local_preview="false")
+    Set URL-policy env vars for this test, then reload config and resolver by name.
+    Returns (cfg_module, resolver_module).
     """
-    def apply(*, app_env=None, media_root=None, public_cdn=None, local_static_base=None, allow_local_preview=None):
-        if public_cdn is None:
-            monkeypatch.setenv("PUBLIC_CDN_BASE", "")
-        if local_static_base is None:
-            monkeypatch.setenv("LOCAL_STATIC_BASE", "")
-        if allow_local_preview is None:
-            # ensure falsey regardless of .env
-            monkeypatch.setenv("ALLOW_LOCAL_PREVIEW", "false")
-        
-        # Set environment overrides       
-        if app_env is not None:
-            monkeypatch.setenv("APP_ENV", str(app_env))
-        if media_root is not None:
-            mr = str(media_root) if isinstance(media_root, (Path,)) else str(media_root)
-            monkeypatch.setenv("MEDIA_ROOT", mr)
-        if public_cdn is not None:
-            monkeypatch.setenv("PUBLIC_CDN_BASE", str(public_cdn))
-        if local_static_base is not None:
-            monkeypatch.setenv("LOCAL_STATIC_BASE", str(local_static_base))
-        if allow_local_preview is not None:
-            monkeypatch.setenv("ALLOW_LOCAL_PREVIEW", str(allow_local_preview ))
-    
-        importlib.reload(cfg)
-        importlib.reload(resolver)
+    def apply(
+        *,
+        app_env: Optional[str] = None,
+        media_root: Optional[Union[str, Path]] = None,
+        public_cdn: Optional[str] = None,
+        local_static_base: Optional[str] = None,
+        allow_local_preview: Optional[str] = None,
+    ) -> Tuple[object, object]:
+        # 1) Clear then set env vars for this test
+        for key in ("APP_ENV", "MEDIA_ROOT", "PUBLIC_CDN_BASE", "LOCAL_STATIC_BASE", "ALLOW_LOCAL_PREVIEW"):
+            monkeypatch.delenv(key, raising=False)
 
-        return cfg, resolver
-    
-    
+        monkeypatch.setenv("APP_ENV", app_env or "local")
+
+        if media_root is not None:
+            mr = str(media_root if isinstance(media_root, Path) else media_root)
+            monkeypatch.setenv("MEDIA_ROOT", mr)
+
+        # Empty string blocks python-dotenv from refilling missing vars
+        monkeypatch.setenv("PUBLIC_CDN_BASE", public_cdn or "")
+        monkeypatch.setenv("LOCAL_STATIC_BASE", local_static_base or "")
+
+        if allow_local_preview is not None:
+            monkeypatch.setenv("ALLOW_LOCAL_PREVIEW", str(allow_local_preview))
+        else:
+            monkeypatch.setenv("ALLOW_LOCAL_PREVIEW", "")
+
+        # 2) Reload modules by name (ensures identity with sys.modules)
+        cfg_mod = import_module("app.core.config")
+        reload(cfg_mod)
+
+        resolver_mod = import_module("app.services.url_resolver")
+        reload(resolver_mod)
+
+        return cfg_mod, resolver_mod
+
     return apply
 
 @pytest.fixture

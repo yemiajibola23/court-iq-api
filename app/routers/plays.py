@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import Optional, List, cast
 from pathlib import Path
 
-from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead
+from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead, PlaySummary
 from app.utils.mappers import to_play_dto
 from app.utils.video_path_policy import ALLOWED_EXTS
 from app.deps import get_repo
@@ -110,7 +110,7 @@ def list_plays(
         last = items[-1]
         next_cursor = encode_cursor(last.created_at, UUID(last.id))
     
-    dtos: List[PlayRead] = [to_play_dto(p) for p in items]    
+    dtos: List[PlaySummary] = [to_play_dto(p) for p in items]    
     return {"data": dtos, "nextCursor": next_cursor, "hasMore": has_more}
 
 @router.delete("/{id}")

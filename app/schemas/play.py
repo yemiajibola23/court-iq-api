@@ -44,4 +44,9 @@ class PlayRead(BaseModel):
     video_url: Optional[str] = Field(None, alias="videoUrl", serialization_alias="videoUrl")
     thumbnail_url: str = Field(..., alias="thumbnailUrl", serialization_alias="thumbnailUrl")
 
-    model_confg = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)
+    
+class PlaySummary(BaseModel):
+    id: str
+    title: str
+    video_path: str

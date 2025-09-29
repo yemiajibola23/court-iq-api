@@ -1,16 +1,20 @@
 import pytest
 import importlib
-import app.core.config as cfg
 import app.services.url_resolver as resolver
 from pathlib import Path
 from typing import Callable
+import types
+from importlib import import_module
+
+def cfg() -> types.ModuleType:
+    return import_module("app.core.config")
 
 def test_public_video_url_from_cdn_base_and_key(set_env_and_reload):
     # Arrange
     set_env_and_reload(public_cdn="https://cdn.local", allow_local_preview="false", local_static_base=None)
     play = {"storage_key": "videos/abc.mp4"}
     
-    assert cfg.PREVIEW_URL_BASE() == "https://cdn.local"
+    assert cfg().PREVIEW_URL_BASE() == "https://cdn.local"
     
     # Act
     video_url, _ = resolver.build_public_urls(play)
@@ -26,7 +30,7 @@ def test_local_path_allowed_maps_to_dev_static(media_root, make_play_from_media)
         local_static_base="http://localhost:8000/static",
         public_cdn=None,
     )
-    assert cfg.PREVIEW_URL_BASE() == "http://localhost:8000/static"
+    assert cfg().PREVIEW_URL_BASE() == "http://localhost:8000/static"
 
     _, play = make_play_from_media(media, "videos/abc.mp4", use_path=True)
     
@@ -47,7 +51,7 @@ def test_local_path_disallowed_returns_null_video_url(media_root, make_play_from
     _, play = make_play_from_media(media, "videos/abc.mp4", use_path=True)
     video_url, _ = resolver.build_public_urls(play)
     
-    assert cfg.PREVIEW_URL_BASE() is None
+    assert cfg().PREVIEW_URL_BASE() is None
     
     # Act
     video_url, _ = resolver.build_public_urls(play)
@@ -60,14 +64,14 @@ def test_thumbnail_placeholder_when_missing_cdn_env(set_env_and_reload):
     set_env_and_reload(public_cdn="https://cdn.local", allow_local_preview="false")
     play = {"storage_key": "videos/abc.mp4"}
     
-    assert cfg.PREVIEW_URL_BASE() == "https://cdn.local"
+    assert cfg().PREVIEW_URL_BASE() == "https://cdn.local"
 
     # Act
     _, thumb_url = resolver.build_public_urls(play)
     
     # Assert
     assert thumb_url is not None
-    assert thumb_url == cfg.THUMB_PLACEHOLDER_URL
+    assert thumb_url == cfg().THUMB_PLACEHOLDER_URL
     
 
 def test_thumbnail_placeholder_when_missing_restricted_env(set_env_and_reload):
@@ -75,14 +79,14 @@ def test_thumbnail_placeholder_when_missing_restricted_env(set_env_and_reload):
     set_env_and_reload(allow_local_preview="false")
     play = {"storage_key": "videos/abc.mp4"}
     
-    assert cfg.PREVIEW_URL_BASE() is None
+    assert cfg().PREVIEW_URL_BASE() is None
 
     # Act
     _, thumb_url = resolver.build_public_urls(play)
     
     # Assert
     assert thumb_url is not None
-    assert thumb_url == cfg.THUMB_PLACEHOLDER_URL
+    assert thumb_url == cfg().THUMB_PLACEHOLDER_URL
     
 @pytest.mark.parametrize("base, rel, expected", [
      # trailing slash on base
@@ -129,7 +133,7 @@ def test_local_preview_maps_paths_under_media_root(relative_path_under_root, exp
         public_cdn=None
     )
     
-    assert cfg.PREVIEW_URL_BASE() == "http://localhost:8000/static"
+    assert cfg().PREVIEW_URL_BASE() == "http://localhost:8000/static"
     
     _, play = make_play_from_media(media, relative_path_under_root, use_path=True)
 
@@ -154,7 +158,7 @@ def test_local_preview_rejects_paths_outside_media_root(variant, media_root):
         public_cdn=None
     )
         
-    assert cfg.PREVIEW_URL_BASE() == "http://localhost:8000/static"
+    assert cfg().PREVIEW_URL_BASE() == "http://localhost:8000/static"
         
     if variant == "sibling_dir":
         # MEDIA_ROOT = <tmp>/media; outside = <tmp>/other/abc.mp4
@@ -190,7 +194,7 @@ def test_local_preview_rejects_paths_outside_media_root(variant, media_root):
     
 def test_local_preview_rejects_non_absolute_paths(media_root):
     media_root(allow_local_preview="true", local_static_base="http://localhost:8000/static", public_cdn=None)
-    assert cfg.PREVIEW_URL_BASE() == "http://localhost:8000/static"
+    assert cfg().PREVIEW_URL_BASE() == "http://localhost:8000/static"
 
     play = {"storage_path": "videos/abc.mp4"}  # relative, not absolute
     video_url, _ = resolver.build_public_urls(play)
