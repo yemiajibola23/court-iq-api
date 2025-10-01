@@ -52,3 +52,21 @@ def test_get_play_includes_video_and_thumbnail_url(client):
     
     assert "videoUrl" in body and body["videoUrl"] is None
     assert "thumbnailUrl" in body and body["thumbnailUrl"] is not None
+    
+    
+def test_get_play_uses_thumbnail_placeholder_when_enabled(client, set_env_and_reload):
+    # Arrange
+    set_env_and_reload(thumbnail_placeholder_mode="static",thumbnail_placeholder="/static/placeholders/thumb-480x270.png")
+    
+    payload = {"title": "Spain PnR", "video_path": "https://example.com/clip.mp4"}
+    
+    create_res = client.post("/v1/plays", json=payload)
+    play_id = create_res.headers["Location"].rsplit("/", 1)[-1]
+    
+    # Act
+    res = client.get(f"/v1/plays/{play_id}")
+    body = res.json()
+    
+    # Assert
+    assert "thumbnailUrl" in body
+    assert body["thumbnailUrl"] == "/static/placeholders/thumb-480x270.png"

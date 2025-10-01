@@ -141,7 +141,8 @@ def set_env_and_reload(monkeypatch) -> Callable[..., Tuple[object, object]]:
         public_cdn: Optional[str] = None,
         local_static_base: Optional[str] = None,
         allow_local_preview: Optional[str] = None,
-    ) -> Tuple[object, object]:
+        thumbnail_placeholder_mode: Optional[str] = None,
+        thumbnail_placeholder: Optional[str] = None) -> Tuple[object, object]:
         # 1) Clear then set env vars for this test
         for key in ("APP_ENV", "MEDIA_ROOT", "PUBLIC_CDN_BASE", "LOCAL_STATIC_BASE", "ALLOW_LOCAL_PREVIEW"):
             monkeypatch.delenv(key, raising=False)
@@ -160,6 +161,12 @@ def set_env_and_reload(monkeypatch) -> Callable[..., Tuple[object, object]]:
             monkeypatch.setenv("ALLOW_LOCAL_PREVIEW", str(allow_local_preview))
         else:
             monkeypatch.setenv("ALLOW_LOCAL_PREVIEW", "")
+            
+        if thumbnail_placeholder_mode is not None:
+            monkeypatch.setenv("THUMBNAIL_PLACEHOLDER_MODE", thumbnail_placeholder_mode or "off")
+            
+        if thumbnail_placeholder is not None:
+            monkeypatch.setenv("THUMB_PLACEHOLDER_URL", thumbnail_placeholder or "") 
 
         # 2) Reload modules by name (ensures identity with sys.modules)
         cfg_mod = import_module("app.core.config")
