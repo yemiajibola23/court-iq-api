@@ -1,14 +1,10 @@
 from __future__ import annotations
-from pydantic import BaseModel, field_validator, StringConstraints, model_validator
+from pydantic import BaseModel, field_validator, StringConstraints, Field, ConfigDict
 from typing import Annotated, Optional
 from uuid import UUID
-from urllib.parse import urlparse, urlsplit
-from pathlib import Path
 import re
 import app.core.config as cfg
 from app.utils.video_path_policy import validate_video_path as enforce_path_policy
-# TECH_DEBT: TD4, TD9, TD12  — tighten video_path rules (https only, len≤2048, ext in set), per-field 422 arrays, case-insensitive ext check without mutating URL casing.
-# TECH_DEBT: TD11            — when flags disallow local paths, return specific 422 message per spec.
 
 # Acceptable non-URL path shapes
 RE_UNIX_ABS = re.compile(r"^/[^*?\"<>|]+")
@@ -39,9 +35,18 @@ class PlayCreateRequestJSON(BaseModel):
        
         return v
 class PlayCreateResponse(BaseModel):
-    playId: UUID   
+    id: UUID   
             
 class PlayRead(BaseModel):
+    id: str
+    title: str
+    video_path: str
+    video_url: Optional[str] = Field(None, alias="videoUrl", serialization_alias="videoUrl")
+    thumbnail_url: str = Field(..., alias="thumbnailUrl", serialization_alias="thumbnailUrl")
+
+    model_config = ConfigDict(populate_by_name=True)
+    
+class PlaySummary(BaseModel):
     id: str
     title: str
     video_path: str

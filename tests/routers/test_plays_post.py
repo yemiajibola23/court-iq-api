@@ -103,8 +103,8 @@ def test_create_play_trims_inputs_before_validation(client):
     assert location.startswith("/v1/plays/")
     
     data = res.json()
-    assert "playId" in data
+    assert "id" in data
     
     loc_id = location.rsplit("/", 1)[-1]
-    assert data["playId"] == loc_id
+    assert data["id"] == loc_id
  

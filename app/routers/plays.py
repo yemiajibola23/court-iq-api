@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import Optional, List, cast
 from pathlib import Path
 
-from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead
+from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead, PlaySummary
 from app.utils.mappers import to_play_dto
 from app.utils.video_path_policy import ALLOWED_EXTS
 from app.deps import get_repo
@@ -13,10 +13,11 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 from app.services.uploads import validate_and_save_upload
 from fastapi.responses import JSONResponse
 from app.utils.cursor import decode_cursor, encode_cursor
+from app.presentation.plays import present_play
 from datetime import datetime
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
-# TECH_DEBT: TD6       — harmonize response field names (playId vs id) across create/read DTOs.
+# TECH_DEBT: TD6       — harmonize response field names (id vs id) across create/read DTOs.
 
 router = APIRouter(prefix="/v1/plays", tags=["plays"])
 
@@ -52,7 +53,7 @@ async def create_play(response: Response,
                     case("ok", uri):
                         play = plays_repo.create_play(title=title_str, video_path=uri)
                         response.headers["Location"] = f'/v1/plays/{play.id}'
-                        return PlayCreateResponse(playId=UUID(play.id))
+                        return PlayCreateResponse(id=UUID(play.id))
             elif url:
                 return JSONResponse(status_code=422, content={"__root__": ["send URLs as JSON"]})
     else:
@@ -62,18 +63,21 @@ async def create_play(response: Response,
         
         play = plays_repo.create_play(title=obj.title, video_path=obj.video_path)
         response.headers["Location"] = f'/v1/plays/{play.id}'
-        return PlayCreateResponse(playId=UUID(play.id))
+        return PlayCreateResponse(id=UUID(play.id))
 
     return JSONResponse(status_code=415, content={"__root__": ["unsupported media type"]})
             
-@router.get("/{id}")
+@router.get("/{id}", response_model=PlayRead)
 def get_play(id: str,
              plays_repo: PlaysRepository=Depends(get_repo)):
     play = plays_repo.get_play(id)
     if not play:
         raise HTTPException(status_code=404, detail="Play not found")
     
-    return PlayRead(id=play.id, title=play.title, video_path=play.video_path)
+    presented = present_play(play)
+    model = PlayRead.model_validate(presented)
+    
+    return model
 
 @router.get("/")
 def list_plays(
@@ -106,7 +110,7 @@ def list_plays(
         last = items[-1]
         next_cursor = encode_cursor(last.created_at, UUID(last.id))
     
-    dtos: List[PlayRead] = [to_play_dto(p) for p in items]    
+    dtos: List[PlaySummary] = [to_play_dto(p) for p in items]    
     return {"data": dtos, "nextCursor": next_cursor, "hasMore": has_more}
 
 @router.delete("/{id}")

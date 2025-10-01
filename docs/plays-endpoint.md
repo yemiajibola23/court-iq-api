@@ -86,7 +86,7 @@ Dev-override example (when flag is off):
 
 **Happy path**
 
-- Valid `title`, `https` URL with `.mp4` → `200` (or `201`) with `playId`.
+- Valid `title`, `https` URL with `.mp4` → `200` (or `201`) with `id`.
 
 **Failure cases**
 
@@ -94,9 +94,10 @@ Dev-override example (when flag is off):
 - `video_path` with `http://` → `422.video_path`.
 - `video_path` with unsupported extension `.avi` → `422.video_path`.
 - Dev override off: `file://...` and `videos/clip.mp4` → `422.video_path`.
-- Dev override on:  same inputs now valid.
+- Dev override on: same inputs now valid.
 
 ## Validation Checklist
+
 - [x] Sanitize: trim `title`, `video_path`
 - [x] title: non-empty, ≤ 100 chars
 - [x] video_path (default): valid URL, scheme https, ext in {mp4,mov,m4v,webm}, len ≤ 2048
