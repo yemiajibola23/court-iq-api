@@ -9,7 +9,7 @@ def test_delete_play_204_on_success(client):
     assert create_res.status_code == 201, create_res.text
     
     location = create_res.headers.get("Location")
-    play_id = create_res.json()["playId"]
+    play_id = create_res.json()["id"]
     assert location and location.startswith("/v1/plays/"), f"Missing Location header: {create_res.headers}"
     assert location.rsplit("/", 1)[-1] == str(play_id)
    
@@ -29,7 +29,7 @@ def test_get_after_delete_returns_404(client):
     assert create_res.status_code == 201, create_res.text
     
     location = create_res.headers.get("Location")
-    play_id = create_res.json()["playId"]
+    play_id = create_res.json()["id"]
     assert location and location.startswith("/v1/plays/"), f"Missing Location header: {create_res.headers}"
     assert location.rsplit("/", 1)[-1] == str(play_id)
     

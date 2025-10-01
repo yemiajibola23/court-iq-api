@@ -34,7 +34,7 @@ Create a new play.
 - Body:
 
 ```json
-{ "playId": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71" }
+{ "id": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71" }
 ```
 
 **Examples**
@@ -94,7 +94,7 @@ curl -i -X POST http://localhost:8000/v1/plays \
 - Body:
 
 ```json
-{ "playId": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71" }
+{ "id": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71" }
 ```
 
 ---

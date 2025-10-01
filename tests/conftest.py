@@ -27,10 +27,10 @@ def assert_201_field():
     def _assert(res):
         assert res.status_code == 201
         data = res.json()
-        assert "playId" in data
+        assert "id" in data
         
         # Validate UUID-ish value (FastAPI serializes UUID -> string)
-        uuid_val = data["playId"]
+        uuid_val = data["id"]
         uuid.UUID(uuid_val)
     
         assert "Location" in res.headers
@@ -38,7 +38,7 @@ def assert_201_field():
         location = res.headers["Location"]
         assert location.startswith("/v1/plays/")
 
-        # The id in Location should equal the JSON playId
+        # The id in Location should equal the JSON id
         loc_id = location.rsplit("/", 1)[-1]
         assert loc_id == uuid_val
         

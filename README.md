@@ -3,6 +3,7 @@
 Backend service for CourtIQ, providing endpoints for play creation, retrieval, and analysis.
 
 ## Tech Stack
+
 - Python 3.12+
 - FastAPI
 - Pytest
@@ -33,7 +34,7 @@ uvicorn app.main:app --reload --port 8000
 ## Endpoints (v0)
 
 - `GET /health` → `{"ok": true}`
-- `POST /v1/plays` → `{"playId": "<uuid>"}`  
+- `POST /v1/plays` → `{"id": "<uuid>"}`  
   _Body_: `{"title": "Test Play", "video_path": "gs://bucket/plays/demo/raw.mp4"}`
 
 > Note: v0 returns a UUID only; Firestore persistence and background processing land in the next slice.
@@ -70,7 +71,9 @@ This project targets **Python 3.12** because `pydantic-core`’s Rust binding (P
   ```
   3.12.5
   ```
+
 ## API
+
 ## API Examples
 
 For full request/response examples (JSON uploads, multipart file uploads, and precise 422 validation formats), see **[docs/api/plays.md](docs/api/plays.md)**.
@@ -80,33 +83,41 @@ For full request/response examples (JSON uploads, multipart file uploads, and pr
 Create a new play.
 
 **Request body**
+
 ```json
 {
   "title": "Spain PnR vs Drop",
   "video_path": "https://example.com/clip.mp4"
 }
 ```
+
 **Validation**
+
 - `title`: required, non-empty (whitespace trimmed, 1–120 chars).
 - `video_path`: required; must be http(s) URL or a valid file-like path (Unix abs /..., Windows abs C:\..., or relative ../...).
 
 **Response**
+
 - 201 Created
 - Headers: `Location /v1/plays/{id}`
 - Body:
+
 ```json
 {
-  "playId": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71"
+  "id": "2c8e0a09-8a6b-4b3b-8f6d-7d2e2e6f3f71"
 }
 ```
+
 **Examples**
 HTTPie
+
 ```bash
 http POST :8000/v1/plays title="Spain PnR vs Drop" \
   video_path="https://example.com/clip.mp4" -v
 ```
 
 **curl**
+
 ```bash
 curl -i -X POST http://127.0.0.1:8000/v1/plays \
   -H "Content-Type: application/json" \
@@ -115,6 +126,7 @@ curl -i -X POST http://127.0.0.1:8000/v1/plays \
 ```
 
 **Validation error (422)**
+
 ```bash
 http POST :8000/v1/plays title="  " video_path="https://example.com/clip.mp4"
 ```
@@ -124,6 +136,7 @@ http POST :8000/v1/plays title="  " video_path="https://example.com/clip.mp4"
 Returns a Play DTO.
 
 **Response 200**
+
 ```json
 {
   "id": "b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e",
@@ -133,11 +146,13 @@ Returns a Play DTO.
 ```
 
 **Response 404**
+
 ```json
 { "detail": "Play not found" }
 ```
 
 HTTPie
+
 ```bash
 http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
 ```
@@ -145,50 +160,56 @@ http :8000/v1/plays/b1a6c3f0-9c97-4c8f-8c31-0a6b0a2d6d2e
 ## GET `/v1/plays` — List Plays (cursor pagination + title prefix filter)
 
 ### Query Params
-| Name    | Type | Required | Notes |
-|---------|------|----------|-------|
-| `limit` | int  | no       | Max items per page. Default: **10**. Minimum: 1, Maximum: 100. |
-| `cursor`| str  | no       | The **last returned `id`** from the previous page. Results start **after** this id within the filtered view. |
-| `title` | str  | no       | Case-insensitive, trimmed **prefix** filter on `title`. Filtering happens **before** pagination. |
+
+| Name     | Type | Required | Notes                                                                                                        |
+| -------- | ---- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `limit`  | int  | no       | Max items per page. Default: **10**. Minimum: 1, Maximum: 100.                                               |
+| `cursor` | str  | no       | The **last returned `id`** from the previous page. Results start **after** this id within the filtered view. |
+| `title`  | str  | no       | Case-insensitive, trimmed **prefix** filter on `title`. Filtering happens **before** pagination.             |
 
 ### Response
+
 ```json
 {
-  "data": [
-    { "id": "f7b3…", "title": "Alpha Cut", "video_path": "https://…" }
-  ],
-  "nextCursor": "3c9e…"  // null when no more results
+  "data": [{ "id": "f7b3…", "title": "Alpha Cut", "video_path": "https://…" }],
+  "nextCursor": "3c9e…" // null when no more results
 }
 ```
 
 ### Examples
+
 **First Page**
+
 ```bash
 curl -s 'http://localhost:8000/v1/plays?limit=2'
 ```
+
 →
+
 ```json
 {
   "data": [
-    {"id":"…","title":"Alpha Cut","video_path":"…"},
-    {"id":"…","title":"Alpha Spain","video_path":"…"}
+    { "id": "…", "title": "Alpha Cut", "video_path": "…" },
+    { "id": "…", "title": "Alpha Spain", "video_path": "…" }
   ],
-  "nextCursor":"<id-of-Alpha-Spain>"
+  "nextCursor": "<id-of-Alpha-Spain>"
 }
-
 ```
 
 **Next Page**
+
 ```bash
 curl -s 'http://localhost:8000/v1/plays?limit=2&cursor=<id-of-Alpha-Spain>'
 ```
 
 **Filter by title prefix (case-insensitive)**
+
 ```bash
 curl -s 'http://localhost:8000/v1/plays?limit=10&title=  alpha  '
 ```
 
 **Invalid Cursor**
+
 ```bash
 curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
 # HTTP/1.1 400 Bad Request
@@ -199,14 +220,18 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
 
 **Query params**
 
-
 **Response shape**
+
 ```json
 {
   "data": [
-    { "id": "2b9e4f7b-...", "title": "Alpha Cut", "video_path": "https://example.com/clip1.mp4" }
+    {
+      "id": "2b9e4f7b-...",
+      "title": "Alpha Cut",
+      "video_path": "https://example.com/clip1.mp4"
+    }
   ],
-  "nextCursor": "9e1d3a28-..."   // null when no more results
+  "nextCursor": "9e1d3a28-..." // null when no more results
 }
 ```
 

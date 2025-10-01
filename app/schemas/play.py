@@ -35,7 +35,7 @@ class PlayCreateRequestJSON(BaseModel):
        
         return v
 class PlayCreateResponse(BaseModel):
-    playId: UUID   
+    id: UUID   
             
 class PlayRead(BaseModel):
     id: str
