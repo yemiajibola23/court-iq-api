@@ -126,6 +126,8 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 
 ## Day 14 – Delete Video with Play
 
+**Objective:** Delete Video with Play
+
 - [ ] ✨ feat(storage): remove blobs when play deleted (D14-1)
 - [ ] ✅ test(api): delete play removes storage object (D14-2)
 - [ ] 🔨 refactor(repos): transactional delete pipeline (best-effort) (D14-3)
