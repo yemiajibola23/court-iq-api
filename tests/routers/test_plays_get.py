@@ -32,3 +32,23 @@ def test_get_play_returns_200_and_play_dto_after_create(client):
     assert body["id"] == play_id
     assert body["title"] == "Spain PnR"
     assert body["video_path"] == "https://example.com/clip.mp4"
+    
+    
+def test_get_play_includes_video_and_thumbnail_url(client):
+    # Arrange
+    payload = {"title": "Spain PnR", "video_path": "https://example.com/clip.mp4"}
+    
+    create_res = client.post("/v1/plays", json=payload)
+    assert create_res.status_code == 201
+    play_id = create_res.headers["Location"].rsplit("/", 1)[-1]
+    
+    # Act
+    res = client.get(f"/v1/plays/{play_id}")
+    assert res.status_code == 200
+    body = res.json()
+    
+    assert set(body.keys()) >= {"id", "title", "video_path"}
+    
+    
+    assert "videoUrl" in body and body["videoUrl"] is None
+    assert "thumbnailUrl" in body and body["thumbnailUrl"] is not None
