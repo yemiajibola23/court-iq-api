@@ -117,12 +117,12 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 
 **Objective:** Public/Preview Video URLs
 
-- [ ] ✨ feat(storage): generate public/preview URL field on play read (D13-1)
-- [ ] ✅ test(storage): url shape and fallback when restricted (D13-2)
-- [ ] 🔨 refactor(schemas): add `videoUrl` and `thumbnailUrl` (D13-3)
-- [ ] 🧹 chore: thumbnail placeholder generator hook (D13-4)
-- [ ] 📝 docs: client usage & caching hints (D13-5)
-- [ ] 💳 techdebt(api): API field naming inconsistency: `PlayCreateResponse.playId` (camel) vs `PlayRead.id` (snake)
+- [x] ✨ feat(storage): generate public/preview URL field on play read (D13-1)
+- [x] ✅ test(storage): url shape and fallback when restricted (D13-2)
+- [x] 🔨 refactor(schemas): add `videoUrl` and `thumbnailUrl` (D13-3)
+- [x] 🧹 chore: thumbnail placeholder generator hook (D13-4)
+- [x] 📝 docs: client usage & caching hints (D13-5)
+- [x] 💳 techdebt(api): API field naming inconsistency: `PlayCreateResponse.playId` (camel) vs `PlayRead.id` (snake)
 
 ## Day 14 – Delete Video with Play
 
