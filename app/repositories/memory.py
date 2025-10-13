@@ -21,9 +21,9 @@ class MemoryRepository:
     def clear_store(self):
         self._items.clear()
 
-    def create_play(self, title: str, video_path: str) -> Play:
+    def create_play(self, title: str, video_path: str, thumbnail_path: str | None=None) -> Play:
         play_id = str(uuid4())
-        play = Play(play_id, title, video_path, created_at=datetime.now(timezone.utc))
+        play = Play(play_id, title, video_path, thumbnail_path)
     
         self._items[play_id] = play
     
