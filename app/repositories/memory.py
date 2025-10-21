@@ -3,9 +3,7 @@ from typing import Optional, Dict, List, Tuple
 from app.models.play import Play
 from datetime import datetime, timezone
 from app.repositories.plays_repo import PlaysRepository
-
-# TECH_DEBT: TD1, TD8  — replace in-memory store with DB repo; add test-time reset/fixture to avoid cross-test pollution.
-# TECH_DEBT: TD3       — add direct unit tests for repo methods (create/get).
+import threading
 
 _STORE: Dict[str, Play] = {}
 class MemoryRepository(PlaysRepository):
@@ -22,17 +20,22 @@ class MemoryRepository(PlaysRepository):
         return title.casefold().startswith(prefix.strip().casefold())
 
     def create_play(self, title: str, video_path: str, thumbnail_path: str | None=None) -> Play:
-        play_id = str(uuid4())
-        play = Play(play_id, title, video_path, thumbnail_path)
+        with threading.RLock():
+            play_id = str(uuid4())
+            play = Play(
+                id=play_id,
+                title=title,
+                video_path=video_path,
+                thumbnail_path=thumbnail_path)
+            self._items[play_id] = play
+            self._seq[play_id] = self._next_seq
+            self._next_seq += 1
     
-        self._items[play_id] = play
-        self._seq[play_id] = self._next_seq
-        self._next_seq += 1
-    
-        return play
+            return play
     
     def get_play(self, id: str) -> Optional[Play]:
-        return self._items.get(id)
+        with threading.RLock():
+            return self._items.get(id)
 
     def list_plays(self, *, limit: int = 10, title_prefix: Optional[str] = None, before_dt: Optional[datetime]=None, before_id:Optional[UUID]=None) -> Tuple[List[Play], Optional[str]]:
         """
@@ -69,7 +72,8 @@ class MemoryRepository(PlaysRepository):
             Tuple[List[Play], bool]: (items_on_page, has_more)
         """
          
-        items: List[Play] = list(self._items.values())
+        with threading.RLock():
+            items: List[Play] = list(self._items.values())
         
         if title_prefix:
             pfx = title_prefix.strip().lower()
@@ -92,13 +96,15 @@ class MemoryRepository(PlaysRepository):
         return page, next_cursor
             
     def delete_play(self, id: str) -> bool:
-        removed = self._items.pop(id, None)
+        with threading.RLock():
+            removed = self._items.pop(id, None)
     
-        return removed is not None
+            return removed is not None
 
     def clear(self) -> None:
         """Remove all plays and reset insertion tracking."""
-        self._items.clear()
-        self._seq.clear()
-        self._next_seq = 0
+        with threading.RLock():
+            self._items.clear()
+            self._seq.clear()
+            self._next_seq = 0
         

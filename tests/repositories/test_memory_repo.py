@@ -83,3 +83,20 @@ def test_list_handles_nonexistent_cutoff_gracefully(repo):
     # Assert
     assert len(items) == 0
     assert next_cursor is None
+    
+def test_memory_repo_is_thread_safe_for_create_and_delete():
+    from concurrent.futures import ThreadPoolExecutor
+    repo = MemoryRepository()
+    repo.clear()
+
+    def create_many(n):
+        for i in range(n):
+            repo.create_play(f"X{i}", "https://e.com/v.mp4")
+
+    N_THREADS, N_PER = 4, 25
+    with ThreadPoolExecutor(max_workers=N_THREADS) as ex:
+        for _ in range(N_THREADS):
+            ex.submit(create_many, N_PER)
+
+    items, _ = repo.list_plays(limit=1000)
+    assert len(items) == N_THREADS * N_PER

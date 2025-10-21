@@ -121,3 +121,21 @@ def test_sqlite_repo_delete_ok_and_404(tmp_path: Path):
     
     ok2 = repo.delete_play(p.id)
     assert ok2 is False
+    
+
+def test_sqlite_repo_is_thread_safe_for_create_and_list(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    db_path = tmp_path / "db.sqlite"
+    repo = SQLitePlaysRepo(db_path)
+
+    def create_n(n, offset):
+        for i in range(n):
+            repo.create_play(f"T {offset+i}", "https://e.com/a.mp4")
+
+    N_THREADS, N_PER = 5, 10
+    with ThreadPoolExecutor(max_workers=N_THREADS) as ex:
+        for t in range(N_THREADS):
+            ex.submit(create_n, N_PER, t * N_PER)
+
+    items, _ = repo.list_plays(limit=1000)
+    assert len(items) == N_THREADS * N_PER

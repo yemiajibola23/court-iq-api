@@ -6,10 +6,12 @@ import sqlite3
 from uuid import uuid4
 from datetime import datetime
 from uuid import UUID
+import threading
 class SQLitePlaysRepo(PlaysRepository):
     conn: sqlite3.Connection
     
     def __init__(self, path: Path):
+        self._lock = threading.RLock()
         path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(str(path), detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
@@ -18,6 +20,7 @@ class SQLitePlaysRepo(PlaysRepository):
         self.conn.execute("PRAGMA journal_mode=WAL;")
         self.conn.execute("PRAGMA synchronous=NORMAL;")
         self.conn.execute("PRAGMA foreign_keys=ON;")
+        
              
     def _init_schema(self):
         sql = """
@@ -40,10 +43,11 @@ class SQLitePlaysRepo(PlaysRepository):
         return Play(id=row["id"], title=row["title"], video_path=row["video_path"], created_at=dt, thumbnail_path=row["thumbnail_path"])
     
     def create_play(self, title: str, video_path: str) -> Play:
-        id = str(uuid4())
-        sql = "INSERT INTO plays (id, title, video_path, thumbnail_path) VALUES (?, ?, ?, NULL)"
-        self.conn.execute(sql, (id, title, video_path))
-        self.conn.commit()
+        with self._lock, self.conn:
+            id = str(uuid4())
+            sql = "INSERT INTO plays (id, title, video_path, thumbnail_path) VALUES (?, ?, ?, NULL)"
+            self.conn.execute(sql, (id, title, video_path))
+            self.conn.commit()
         
         play = self.get_play(id)
         if not play:
@@ -52,13 +56,12 @@ class SQLitePlaysRepo(PlaysRepository):
         return play
         
     def get_play(self, id: str) -> Optional[Play]:
-        sql = "SELECT id, title, video_path, thumbnail_path, created_at FROM plays WHERE id=?"
-        cursor = self.conn.execute(sql, (id,))
-        row = cursor.fetchone()
-        if row is None:
-            return None
+        with self._lock:
+            sql = "SELECT id, title, video_path, thumbnail_path, created_at FROM plays WHERE id=?"
+            cursor = self.conn.execute(sql, (id,))
+            row = cursor.fetchone()
         
-        return self._row_to_play(row)
+        return None if row is None else self._row_to_play(row)
 
     def list_plays(
         self,
@@ -99,9 +102,10 @@ class SQLitePlaysRepo(PlaysRepository):
         """
         params.append(int(limit) + 1)
 
-        rows = self.conn.execute(sql, params).fetchall()
+        with self._lock:
+            rows = self.conn.execute(sql, params).fetchall()
+        
         items: List[Play] = [self._row_to_play(r) for r in rows]
-
         # Page slice
         page = items[:limit]
 
@@ -114,12 +118,12 @@ class SQLitePlaysRepo(PlaysRepository):
     
     def delete_play(self, id: str) -> bool: 
         sql = "DELETE FROM plays WHERE id=?"
-        with self.conn:
+        with self._lock, self.conn:
             cursor = self.conn.execute(sql, (id,))
         
         return cursor.rowcount > 0        
     
     def clear(self) -> None:
         sql = "DELETE FROM plays"
-        with self.conn:
+        with self._lock, self.conn:
             self.conn.execute(sql)
