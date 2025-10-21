@@ -11,7 +11,7 @@ This file tracks known technical debt and when we plan to address it (aligned to
 | TD4  | `video_path` validation gaps: **http(s) only**, **max length 2048**, allowed extensions `{.mp4,.mov,.m4v,.webm}`                    | Day 10          | Resolved ✅                                 |
 | TD5  | Dev-override flags: `ALLOW_LOCAL_VIDEO_PATHS` / `MEDIA_ROOT` (allow `file://` + relative under `MEDIA_ROOT` only when flag is true) | Day 12          | Resolved ✅                                 |
 | TD6  | API field naming inconsistency: `PlayCreateResponse.id` (camel) vs `PlayRead.id` (snake)                                            | Day 13          | Pending                                     |
-| TD7  | Missing negative tests for malformed UUID on GET `/v1/plays/{id}`                                                                   | Day 14          | Pending                                     |
+| TD7  | Missing negative tests for malformed UUID on GET `/v1/plays/{id}`                                                                   | Day 14          | ✅ Resolved                                     |
 | TD8  | In-memory data store not reset between tests could cause cross-test pollution                                                       | Day 8           | ✅ Resolved (autouse reset + `clear_store`) |
 | TD9  | 422 error format should be **per-field arrays** (e.g., `{ "video_path": ["…"] }`) for all validation failures                       | Day 11          | Resolved ✅                                 |
 | TD10 | Dev-override security: prevent path traversal outside `MEDIA_ROOT` (e.g., `../`)                                                    | Day 12          | Resolved ✅                                 |
@@ -24,7 +24,7 @@ This file tracks known technical debt and when we plan to address it (aligned to
 | TD17 | Centralize Play → DTO mapping to avoid drift                                                                                        | Day 8           | Resolved ✅                                 |
 | TD18 | Add default‐limit + clamp tests for list (`limit` default 10, clamp to 100)                                                         | Day 9           | Resolved ✅                                 |
 | TD19 | Standardize UUID usage across all endpoints (create, read, delete) for consistency                                                  | Day 15          | Pending                                     |
-| TD20 | Plan for introducing threading lock or concurrency-safe patterns before DB migration                                                | Day 14          | Pending                                     |
+| TD20 | Plan for introducing threading lock or concurrency-safe patterns before DB migration                                                | Day 14          | ✅ Resolved                                     |
 | TD21 | Transactional delete pipeline: cascade deletes (e.g., diagrams, storage blobs, worker jobs)                                         | Day 16          | Pending                                     |
 | TD22 | GitHub Action: promote plan.yml current_day on merge                                                                                | Day 17          | Pending                                     |
 | TD23 | Add live CI badges wired to GHA (tests, docs-refresh, coverage)                                                                     | Day 17          | Pending                                     |

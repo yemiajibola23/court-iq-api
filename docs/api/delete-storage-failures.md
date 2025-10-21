@@ -4,7 +4,7 @@ Deletes a play record and attempts to remove associated blobs (video and thumbna
 Blob cleanup is **best-effort** — storage failures are logged but do not fail the request.
 
 ---
-
+ 
 ## Behavior
 
 | Step | Action | Outcome |

@@ -132,7 +132,7 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] ✅ test(api): delete play removes storage object (D14-2)
 - [x] 🔨 refactor(repos): transactional delete pipeline (best-effort) (D14-3)
 - [x] 🧹 chore(logging): structured logs for storage ops (D14-4)
-- [ ] 📝 docs: failure scenarios & retries (not guaranteed) (D14-5)
+- [x] 📝 docs: failure scenarios & retries (not guaranteed) (D14-5)
 - [x] 💳 techdebt(routers): Missing negative tests for malformed UUID on GET /v1/plays/{id} (TD7)
 - [X] 💳 techdebt(db) Plan for introducing threading lock or concurrency-safe patterns before DB migration (TD20)
 
