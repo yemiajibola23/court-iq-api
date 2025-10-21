@@ -1,7 +1,6 @@
 # TECH_DEBT: TD7 — add malformed UUID tests for GET /v1/plays/{id}.
 # TECH_DEBT: TD8 — add fixture to reset in-memory store between tests.
 
-
 def test_get_play_returns_404_when_id_doesnt_exist(client):
     fake_id="00000000-0000-0000-0000-000000000000"
     
@@ -70,3 +69,13 @@ def test_get_play_uses_thumbnail_placeholder_when_enabled(client, set_env_and_re
     # Assert
     assert "thumbnailUrl" in body
     assert body["thumbnailUrl"] == "/static/placeholders/thumb-480x270.png"
+    
+
+def test_get_play_malformed_uuid_returns_422(client):
+    bad_id = "not-a-uuid"
+    r = client.get(f"/v1/plays/{bad_id}")
+    assert r.status_code == 422
+    body = r.json()
+    
+    assert "detail" in body
+    assert "invalid UUID" in body["detail"]

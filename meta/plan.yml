@@ -1,4 +1,4 @@
-current_day: 13
+current_day: 14
 days:
 - day: 8
   branch: feat/api-list-plays
@@ -58,348 +58,321 @@ days:
   branch: feat/dev-override-path-policy-and-cursor
   objective: Local path override policy + traversal protection + cursor plan
   deliverables:
-    - ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy
-    - Traversal blocking
-    - Cursor design note (composite/opaque)
+  - ALLOW_LOCAL_VIDEO_PATHS + MEDIA_ROOT policy
+  - Traversal blocking
+  - Cursor design note (composite/opaque)
   tech_debt_resolve:
-    - TD5
-    - TD10
-    - TD11
-    - TD14
+  - TD5
+  - TD10
+  - TD11
+  - TD14
   tech_debt_add:
-    - TD14
-
+  - TD14
 - day: 13
   branch: feat/public-preview-video-urls
   objective: Public/Preview Video URLs
   deliverables:
-    - ✨ feat(storage): generate public/preview URL field on play read (D13-1)
-    - ✅ test(storage): url shape and fallback when restricted (D13-2)
-    - 🔨 refactor(schemas): add `videoUrl` and `thumbnailUrl` (D13-3)
-    - 🧹 chore: thumbnail placeholder generator hook (D13-4)
-    - 📝 docs: client usage & caching hints (D13-5)
+  - ✨ feat(storage): generate public/preview URL field on play read (D13-1)
+  - ✅ test(storage): url shape and fallback when restricted (D13-2)
+  - 🔨 refactor(schemas): add `videoUrl` and `thumbnailUrl` (D13-3)
+  - 🧹 chore: thumbnail placeholder generator hook (D13-4)
+  - 📝 docs: client usage & caching hints (D13-5)
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 14
   branch: feat/storage-delete-with-play
   objective: Delete Video with Play
   deliverables:
-    - Remove storage blobs when play is deleted
-    - Tests: deleting a play removes storage object
-    - Repos: transactional delete pipeline (best-effort)
-    - Logging: structured logs for storage ops
-    - 'Docs: failure scenarios & retries (not guaranteed)'
+  - Remove storage blobs when play is deleted
+  - Tests: deleting a play removes storage object
+  - Repos: transactional delete pipeline (best-effort)
+  - Logging: structured logs for storage ops
+  - 'Docs: failure scenarios & retries (not guaranteed)'
   tech_debt_resolve:
   - TD7
+  - TD20
   tech_debt_add: []
-
 - day: 15
   branch: feat/storage-signed-urls
   objective: Signed URLs (Secure Access)
   deliverables:
-    - Storage: signed URL generation (time-limited)
-    - Tests: expiry honored; invalid keys rejected
-    - API: GET /v1/plays/{id}/video:signed
-    - Env: key/credential validation
-    - 'Docs: security trade-offs and TTL defaults'
+  - Storage: signed URL generation (time-limited)
+  - Tests: expiry honored; invalid keys rejected
+  - API: GET /v1/plays/{id}/video:signed
+  - Env: key/credential validation
+  - 'Docs: security trade-offs and TTL defaults'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 16
   branch: feat/workers-skeleton
   objective: Worker Service Skeleton
   deliverables:
-    - Add processing worker package (separate module)
-    - Queue: define job schema for 'process_video'
-    - Tests: enqueue/dequeue with in-memory queue
-    - App: emit job after successful upload
-    - 'Docs: local dev loop for worker'
+  - Add processing worker package (separate module)
+  - Queue: define job schema for 'process_video'
+  - Tests: enqueue/dequeue with in-memory queue
+  - App: emit job after successful upload
+  - 'Docs: local dev loop for worker'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 17
   branch: feat/process-frame-extraction
   objective: Frame Extraction
   deliverables:
-    - Extract frames at N fps using OpenCV
-    - Tests: sample video → expected frame count
-    - Perf: skip duplicate/near-identical frames
-    - Media: temp scratch dir handling & cleanup
-    - 'Docs: fps config & trade-offs'
+  - Extract frames at N fps using OpenCV
+  - Tests: sample video → expected frame count
+  - Perf: skip duplicate/near-identical frames
+  - Media: temp scratch dir handling & cleanup
+  - 'Docs: fps config & trade-offs'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 18
   branch: feat/ml-detection
   objective: Detection (Players & Ball)
   deliverables:
-    - Integrate YOLO model wrapper (players, ball)
-    - Tests: detection smoke tests on sample frames
-    - Perf: batch inference
-    - Models: label map & confidence thresholds in config
-    - 'Docs: model source, versioning, reproducibility'
+  - Integrate YOLO model wrapper (players, ball)
+  - Tests: detection smoke tests on sample frames
+  - Perf: batch inference
+  - Models: label map & confidence thresholds in config
+  - 'Docs: model source, versioning, reproducibility'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 19
   branch: feat/process-diagram-json
   objective: Diagram JSON Generation
   deliverables:
-    - Convert detections → normalized diagram JSON
-    - Tests: geometry & timeline consistency checks
-    - Schemas: define 'Diagram' schema + validation
-    - Chore: sanitizers for outliers/missing frames
-    - 'Docs: diagram schema contract'
+  - Convert detections → normalized diagram JSON
+  - Tests: geometry & timeline consistency checks
+  - Schemas: define 'Diagram' schema + validation
+  - Chore: sanitizers for outliers/missing frames
+  - 'Docs: diagram schema contract'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 20
   branch: feat/api-diagram-post
   objective: Persist Diagram to Backend
   deliverables:
-    - API: POST /v1/plays/{id}/diagram (internal worker)
-    - Tests: e2e from upload → stored diagram
-    -  Repos: diagram store & retrieval abstraction
-    - Security: internal auth or shared secret
-    - 'Docs: diagram lifecycle'
+  - API: POST /v1/plays/{id}/diagram (internal worker)
+  - Tests: e2e from upload → stored diagram
+  - Repos: diagram store & retrieval abstraction
+  - Security: internal auth or shared secret
+  - 'Docs: diagram lifecycle'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 21
   branch: feat/api-diagram-get
   objective: Serve Diagram (GET)
   deliverables:
-    - API: GET /v1/plays/{id}/diagram returns latest
-    - Tests: 404 when missing; happy path
-    - HTTP: ETag/Last-Modified caching headers
-    - Perf: projection-only read for large diagrams
-    - 'Docs: client caching guidance'
+  - API: GET /v1/plays/{id}/diagram returns latest
+  - Tests: 404 when missing; happy path
+  - HTTP: ETag/Last-Modified caching headers
+  - Perf: projection-only read for large diagrams
+  - 'Docs: client caching guidance'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 22
   branch: feat/api-diagram-edit
   objective: Manual Diagram Edits (POST)
   deliverables:
-    - API: POST /v1/plays/{id}/diagram:edit accepts deltas
-    - Tests: schema-validated deltas; rejects invalid ops
-    - Services: merge engine for deltas
-    - Audit: store editor + timestamp metadata
-    - 'Docs: edit operations and invariants'
+  - API: POST /v1/plays/{id}/diagram:edit accepts deltas
+  - Tests: schema-validated deltas; rejects invalid ops
+  - Services: merge engine for deltas
+  - Audit: store editor + timestamp metadata
+  - 'Docs: edit operations and invariants'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 23
   branch: feat/schemas-diagram-validation
   objective: Diagram Validation Rules
   deliverables:
-    - Schemas: strict validation (bounds, team sizes, frames)
-    - Tests: boundary and edge cases
-    - Process: pre-validate worker output
-    - Chore: error taxonomy (user vs system)
-    - 'Docs: validation spec'
+  - Schemas: strict validation (bounds, team sizes, frames)
+  - Tests: boundary and edge cases
+  - Process: pre-validate worker output
+  - Chore: error taxonomy (user vs system)
+  - 'Docs: validation spec'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 24
   branch: feat/api-diagram-diff-history
   objective: Diagram Diffing & History
   deliverables:
-    - API: GET /v1/plays/{id}/diagram:diff?from=&to=
-    - Tests: diffs across versions; empty diff case
-    - Repos: versioned diagram storage
-    - Chore: migration note for versioning
-    - 'Docs: diff format and examples'
+  - API: GET /v1/plays/{id}/diagram:diff?from=&to=
+  - Tests: diffs across versions; empty diff case
+  - Repos: versioned diagram storage
+  - Chore: migration note for versioning
+  - 'Docs: diff format and examples'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 25
   branch: test/e2e-play-to-diagram
   objective: E2E Tests (Play → Diagram)
   deliverables:
-    - E2E: upload video → processed → diagram persisted → read back
-    - CI: run worker tests in pipeline
-    - Fixtures: sample videos & expected diagrams
-    - Perf: parallelize test jobs
-    - 'Docs: how to run e2e locally'
+  - E2E: upload video → processed → diagram persisted → read back
+  - CI: run worker tests in pipeline
+  - Fixtures: sample videos & expected diagrams
+  - Perf: parallelize test jobs
+  - 'Docs: how to run e2e locally'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 26
   branch: feat/ios-skeleton
   objective: iOS App Skeleton (SwiftUI)
   deliverables:
-    - Create CourtIQ SwiftUI app project
-    - iOS chore: bundle ids, targets, schemes
-    - Basic navigation shell (list → detail)
-    - 'Docs(iOS): build & run instructions'
+  - Create CourtIQ SwiftUI app project
+  - iOS chore: bundle ids, targets, schemes
+  - Basic navigation shell (list → detail)
+  - 'Docs(iOS): build & run instructions'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 27
   branch: feat/ios-plays-list
   objective: iOS Plays List
   deliverables:
-    - List view fetching GET /v1/plays
-    - Tests: snapshot for empty + populated lists
-    - Refactor: data layer with async/await + decoding
-    - iOS env config (base URL)
-    - 'Docs(iOS): API usage sample'
+  - List view fetching GET /v1/plays
+  - Tests: snapshot for empty + populated lists
+  - Refactor: data layer with async/await + decoding
+  - iOS env config (base URL)
+  - 'Docs(iOS): API usage sample'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 28
   branch: feat/ios-play-detail-video
   objective: iOS Play Detail + Video
   deliverables:
-    - Detail screen with title/notes + video player
-    - Refactor: caching for signed video URL
-    - Tests: detail rendering with mock data
-    - iOS accessibility labels
-    - 'Docs(iOS): troubleshooting playback'
+  - Detail screen with title/notes + video player
+  - Refactor: caching for signed video URL
+  - Tests: detail rendering with mock data
+  - iOS accessibility labels
+  - 'Docs(iOS): troubleshooting playback'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 29
   branch: feat/ios-diagram-overlay
   objective: iOS Diagram Overlay
   deliverables:
-    - Render diagram overlay synced to video time
-    - Perf: throttle redraw, reuse paths
-    - Tests: frame-to-time mapping
-    - Refactor: diagram view model to parse JSON
-    - 'Docs(iOS): overlay architecture notes'
+  - Render diagram overlay synced to video time
+  - Perf: throttle redraw, reuse paths
+  - Tests: frame-to-time mapping
+  - Refactor: diagram view model to parse JSON
+  - 'Docs(iOS): overlay architecture notes'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 30
   branch: feat/ios-edit-metadata
   objective: iOS Edit Metadata
   deliverables:
-    - Edit title/notes (PATCH) with optimistic UI
-    - Tests: form validation and error states
-    - Refactor: reusable API client + error mapping
-    - iOS loading/empty/error visuals
-    - 'Docs(iOS): UX patterns used'
+  - Edit title/notes (PATCH) with optimistic UI
+  - Tests: form validation and error states
+  - Refactor: reusable API client + error mapping
+  - iOS loading/empty/error visuals
+  - 'Docs(iOS): UX patterns used'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 31
   branch: feat/ai-summary
   objective: AI Summary
   deliverables:
-    - Generate short play summary (rule/LLM hybrid or stub)
-    - Tests: deterministic with fixtures/stubs
-    - API: GET /v1/plays/{id}/insights/summary
-    - Services: insights service abstraction
-    - 'Docs: assumptions & limitations'
+  - Generate short play summary (rule/LLM hybrid or stub)
+  - Tests: deterministic with fixtures/stubs
+  - API: GET /v1/plays/{id}/insights/summary
+  - Services: insights service abstraction
+  - 'Docs: assumptions & limitations'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 32
   branch: feat/ai-reasoning
   objective: Success/Failure Reasoning
   deliverables:
-    - Heuristics using diagram data (spacing, possession)
-    - Tests: success/failure classification cases
-    - API: include reasoning in insights payload
-    - Metrics counters for insights calls
-    - 'Docs: feature flags by env'
+  - Heuristics using diagram data (spacing, possession)
+  - Tests: success/failure classification cases
+  - API: include reasoning in insights payload
+  - Metrics counters for insights calls
+  - 'Docs: feature flags by env'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 33
   branch: feat/ai-confidence-scores
   objective: Confidence Scores
   deliverables:
-    - Attach confidence per insight component
-    - Tests: confidence ranges + aggregation
-    - Schemas: insights v1 with confidences
-    - Chore: serialize/rounding standards
-    - 'Docs: interpretation guidance'
+  - Attach confidence per insight component
+  - Tests: confidence ranges + aggregation
+  - Schemas: insights v1 with confidences
+  - Chore: serialize/rounding standards
+  - 'Docs: interpretation guidance'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 34
   branch: feat/api-insights
   objective: Serve Insights API
   deliverables:
-    - API: GET /v1/plays/{id}/insights
-    - Tests: insights endpoint integration
-    - Caching headers & TTL for insights
-    - Services: batch compute on demand vs cached
-    - 'Docs: endpoint examples'
+  - API: GET /v1/plays/{id}/insights
+  - Tests: insights endpoint integration
+  - Caching headers & TTL for insights
+  - Services: batch compute on demand vs cached
+  - 'Docs: endpoint examples'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 35
   branch: feat/devops-dockerize-backend
   objective: Dockerize Backend
   deliverables:
-    - Dockerfile + .dockerignore
-    - CI: docker build + healthcheck run
-    - Perf: enable uvicorn workers via env
-    - 'Docs: local docker run instructions'
+  - Dockerfile + .dockerignore
+  - CI: docker build + healthcheck run
+  - Perf: enable uvicorn workers via env
+  - 'Docs: local docker run instructions'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 36
   branch: feat/ci-cd-backend
   objective: CI/CD Backend
   deliverables:
-    - GitHub Actions: lint, test, build image
-    - CI: cache deps, parallelize test matrix
-    - Tests: required checks for PR merge
-    - CI: tag images by branch/commit
-    - 'Docs: CI overview & secrets'
+  - GitHub Actions: lint, test, build image
+  - CI: cache deps, parallelize test matrix
+  - Tests: required checks for PR merge
+  - CI: tag images by branch/commit
+  - 'Docs: CI overview & secrets'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 37
   branch: feat/devops-deploy-backend
   objective: Deploy Backend
   deliverables:
-    - Deploy to Cloud Run (or equivalent)
-    - Infra configs: service, concurrency, min instances
-    - Tests: smoke test deployed /health
-    - Config: production env and secrets wiring
-    - 'Docs: rollout & rollback process'
+  - Deploy to Cloud Run (or equivalent)
+  - Infra configs: service, concurrency, min instances
+  - Tests: smoke test deployed /health
+  - Config: production env and secrets wiring
+  - 'Docs: rollout & rollback process'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 38
   branch: feat/ios-devops-testflight
   objective: TestFlight Build (iOS)
   deliverables:
-    - iOS signing, app IDs, profiles
-    - Optional fastlane lane for beta deploy
-    - Tests: archive build succeeds locally
-    - iOS: app metadata + screenshots placeholders
-    - 'Docs(iOS-devops): TestFlight checklist'
+  - iOS signing, app IDs, profiles
+  - Optional fastlane lane for beta deploy
+  - Tests: archive build succeeds locally
+  - iOS: app metadata + screenshots placeholders
+  - 'Docs(iOS-devops): TestFlight checklist'
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 39
   branch: docs/documentation-pass
   objective: Documentation Pass
   deliverables:
-    - Expand README with API table and iOS setup
-    - Add ROADMAP-HYBRID.md reference and status
-    - Add troubleshooting & FAQ
-    - Clean TODOs, rename ambiguous symbols
-    - Tag v0.1.0 and generate changelog
+  - Expand README with API table and iOS setup
+  - Add ROADMAP-HYBRID.md reference and status
+  - Add troubleshooting & FAQ
+  - Clean TODOs, rename ambiguous symbols
+  - Tag v0.1.0 and generate changelog
   tech_debt_resolve: []
   tech_debt_add: []
-
 - day: 40
   branch: fix/bug-polish-buffer
   objective: Bug Fix & Polish Buffer
   deliverables:
-    - Fix: address top reported bugs from testing
-    - Style: refine iOS UI spacing/typography
-    - Perf: profile slow endpoints and optimize N+1s
-    - Chore: archive out-of-scope tech-debt items
-    - Docs: “What’s next” + contribution welcome notes
+  - Fix: address top reported bugs from testing
+  - Style: refine iOS UI spacing/typography
+  - Perf: profile slow endpoints and optimize N+1s
+  - Chore: archive out-of-scope tech-debt items
+  - Docs: “What’s next” + contribution welcome notes
   tech_debt_resolve: []
   tech_debt_add: []

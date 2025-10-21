@@ -228,16 +228,30 @@ curl -i 'http://localhost:8000/v1/plays?cursor=bogus'
 
 ## DELETE `/v1/plays/{id}` — Delete Play by ID
 
+Deletes the Play record and attempts to remove associated media from storage (video + thumbnail).  
+Blob cleanup is **best-effort** — deletion errors are logged but do not cause the request to fail.
+
 **Response codes**
 
-- **204 No Content** — Play deleted
-- **404 Not Found** — No Play with that id
+| Code | Meaning | Notes |
+|------|----------|-------|
+| **204 No Content** | Play deleted successfully | Storage cleanup best-effort |
+| **404 Not Found** | No Play with that id | No cleanup attempted |
+| **422 Unprocessable Entity** | Invalid UUID | No cleanup attempted |
 
-_curl_
+**Example**
 
 ```bash
 curl -i -X DELETE http://localhost:8000/v1/plays/2b9e4f7b-1234-5678-9abc-def012345678
 ```
+
+**Response**
+```
+HTTP/1.1 204 No Content
+```
+
+**See Also**
+[Detailed Failure Scenarios & Retry Policy](/docs/api/delete-storage-failures.md)
 
 ---
 

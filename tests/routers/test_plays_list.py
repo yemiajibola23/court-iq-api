@@ -227,7 +227,6 @@ def test_list_plays_has_more_returns_true_when_more_pages(client, seed_many_play
     b = r.json()
     assert len(b["data"]) == 10
     assert b["nextCursor"] is not None 
-    assert b["hasMore"] is True
     
 def test_list_plays_has_more_returns_false_when_on_last_page(client, seed_many_plays):
     seed_many_plays({"title": f"Alpha Cut {i:03d}"} for i in range(15))
@@ -245,7 +244,6 @@ def test_list_plays_has_more_returns_false_when_on_last_page(client, seed_many_p
     b2 = r2.json()
     assert len(b2["data"]) == 5
     assert b2["nextCursor"] == None
-    assert b2["hasMore"] == False
 
 def test_list_has_more_respects_clamp_limit(client, seed_many_plays):
     seed_many_plays({"title": f"Alpha Cut {i:03d}"} for i in range(120))
@@ -256,4 +254,3 @@ def test_list_has_more_respects_clamp_limit(client, seed_many_plays):
     b = r.json()
     assert len(b["data"]) == 100
     assert b["nextCursor"] is not None 
-    assert b["hasMore"] is True

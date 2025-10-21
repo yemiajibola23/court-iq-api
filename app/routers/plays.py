@@ -6,7 +6,7 @@ from pathlib import Path
 from app.schemas.play import PlayCreateRequestJSON, PlayCreateResponse, PlayRead, PlaySummary
 from app.utils.mappers import to_play_dto
 from app.utils.video_path_policy import ALLOWED_EXTS
-from app.deps import get_repo
+from app.deps import get_repo, get_storage_client
 from app.repositories.plays_repo import PlaysRepository
 from fastapi.responses import JSONResponse
 from starlette.datastructures import UploadFile as StarletteUploadFile
@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from app.utils.cursor import decode_cursor, encode_cursor
 from app.presentation.plays import present_play
 from datetime import datetime
+from app.services.plays_delete_storage import delete_play_and_media
 
 # TECH_DEBT: TD2, TD7  — validate path param `id` as UUID; add negative tests for malformed UUID.
 # TECH_DEBT: TD6       — harmonize response field names (id vs id) across create/read DTOs.
@@ -70,6 +71,12 @@ async def create_play(response: Response,
 @router.get("/{id}", response_model=PlayRead)
 def get_play(id: str,
              plays_repo: PlaysRepository=Depends(get_repo)):
+    
+    try:
+        UUID(id)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"invalid UUID format: {e}")
+    
     play = plays_repo.get_play(id)
     if not play:
         raise HTTPException(status_code=404, detail="Play not found")
@@ -103,22 +110,25 @@ def list_plays(
         except ValueError:
             return JSONResponse(status_code=422, content={"cursor": ["invalid cursor token"]})
         
-    items, has_more = plays_repo.list_plays(limit=limit, title_prefix=title, before_dt=before_dt, before_id=before_id)
-    next_cursor: str | None = None
-        
-    if has_more: 
+    items, repo_next_cursor = plays_repo.list_plays(limit=limit, title_prefix=title, before_dt=before_dt, before_id=before_id)
+    has_more = bool(repo_next_cursor)
+    
+    next_cursor = None
+    if has_more and items:
         last = items[-1]
-        next_cursor = encode_cursor(last.created_at, UUID(last.id))
+        last_dt = last.created_at
+        last_uuid = UUID(last.id)
+        next_cursor = encode_cursor(last_dt, last_uuid)
     
     dtos: List[PlaySummary] = [to_play_dto(p) for p in items]    
     return {"data": dtos, "nextCursor": next_cursor, "hasMore": has_more}
 
 @router.delete("/{id}")
 def delete_play(id: str,
-                plays_repo: PlaysRepository=Depends(get_repo)):
-    key = str(id)
-    ok = plays_repo.delete_play(key)
-    if not ok:
+                plays_repo: PlaysRepository=Depends(get_repo),
+                storage = Depends(get_storage_client)):
+    try:
+        delete_play_and_media(play_id=id, repo=plays_repo, storage=storage)
+    except KeyError:
         raise HTTPException(status_code=404, detail="Play not found")
-    
     return Response(status_code=204)
