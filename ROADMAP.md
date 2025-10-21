@@ -133,7 +133,7 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 - [x] 🔨 refactor(repos): transactional delete pipeline (best-effort) (D14-3)
 - [x] 🧹 chore(logging): structured logs for storage ops (D14-4)
 - [ ] 📝 docs: failure scenarios & retries (not guaranteed) (D14-5)
-- [ ] 💳 techdebt(routers): Missing negative tests for malformed UUID on GET /v1/plays/{id} (TD7)
+- [x] 💳 techdebt(routers): Missing negative tests for malformed UUID on GET /v1/plays/{id} (TD7)
 - [ ] 💳 techdebt(db) Plan for introducing threading lock or concurrency-safe patterns before DB migration (TD20)
 
 ## Day 15 – Signed URLs (Secure Access)

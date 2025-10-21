@@ -71,6 +71,12 @@ async def create_play(response: Response,
 @router.get("/{id}", response_model=PlayRead)
 def get_play(id: str,
              plays_repo: PlaysRepository=Depends(get_repo)):
+    
+    try:
+        UUID(id)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"invalid UUID format: {e}")
+    
     play = plays_repo.get_play(id)
     if not play:
         raise HTTPException(status_code=404, detail="Play not found")
