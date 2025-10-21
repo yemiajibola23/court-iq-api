@@ -128,10 +128,10 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 
 **Objective:** Delete Video with Play
 
-- [ ] ✨ feat(storage): remove blobs when play deleted (D14-1)
-- [ ] ✅ test(api): delete play removes storage object (D14-2)
-- [ ] 🔨 refactor(repos): transactional delete pipeline (best-effort) (D14-3)
-- [ ] 🧹 chore(logging): structured logs for storage ops (D14-4)
+- [x] ✨ feat(storage): remove blobs when play deleted (D14-1)
+- [x] ✅ test(api): delete play removes storage object (D14-2)
+- [x] 🔨 refactor(repos): transactional delete pipeline (best-effort) (D14-3)
+- [x] 🧹 chore(logging): structured logs for storage ops (D14-4)
 - [ ] 📝 docs: failure scenarios & retries (not guaranteed) (D14-5)
 - [ ] 💳 techdebt(routers): Missing negative tests for malformed UUID on GET /v1/plays/{id} (TD7)
 - [ ] 💳 techdebt(db) Plan for introducing threading lock or concurrency-safe patterns before DB migration (TD20)

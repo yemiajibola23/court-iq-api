@@ -45,7 +45,7 @@ def test_deletes_video_and_thumbnail_blobs_best_effort(fake_storage, media_root,
 def test_unknown_ids_raises_not_found_and_makes_no_storage_calls(fake_storage, repo_mem):
     missing_id = str(uuid4())
     
-    with    pytest.raises(ValueError, match="not found"):
+    with    pytest.raises(KeyError):
         delete_play_and_media(play_id=missing_id, repo=repo_mem, storage=fake_storage)
         
     assert fake_storage.calls == []

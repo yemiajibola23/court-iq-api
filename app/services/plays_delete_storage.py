@@ -15,7 +15,7 @@ def delete_play_and_media(play_id: str, repo: PlaysRepository, storage: StorageC
     """
     play = repo.get_play(play_id)
     if not play:
-        raise ValueError(f"Play with id {play_id} not found")
+        raise KeyError(play_id)
     
     repo.delete_play(play_id)
     

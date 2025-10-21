@@ -104,12 +104,15 @@ def list_plays(
         except ValueError:
             return JSONResponse(status_code=422, content={"cursor": ["invalid cursor token"]})
         
-    items, has_more = plays_repo.list_plays(limit=limit, title_prefix=title, before_dt=before_dt, before_id=before_id)
-    next_cursor: str | None = None
-        
-    if has_more: 
+    items, repo_next_cursor = plays_repo.list_plays(limit=limit, title_prefix=title, before_dt=before_dt, before_id=before_id)
+    has_more = bool(repo_next_cursor)
+    
+    next_cursor = None
+    if has_more and items:
         last = items[-1]
-        next_cursor = encode_cursor(last.created_at, UUID(last.id))
+        last_dt = last.created_at
+        last_uuid = UUID(last.id)
+        next_cursor = encode_cursor(last_dt, last_uuid)
     
     dtos: List[PlaySummary] = [to_play_dto(p) for p in items]    
     return {"data": dtos, "nextCursor": next_cursor, "hasMore": has_more}

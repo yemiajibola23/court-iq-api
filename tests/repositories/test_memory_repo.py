@@ -39,24 +39,23 @@ def test_delete_then_delete_again(repo):
 
 def test_list_default_limit_10(repo):
     _seed(repo, 13)
-    items, has_more = repo.list_plays(limit=10, before_dt=None, before_id=None, title_prefix=None)
+    items, next_cursor = repo.list_plays(limit=10, before_dt=None, before_id=None, title_prefix=None)
     assert len(items) == 10
-    assert has_more == True
+    assert isinstance(next_cursor, str) and next_cursor
 
 def test_list_cursor_paginates(repo):
     # Arrange
     _seed(repo, 12)
     
     # Act & Assert
-    items, h1= repo.list_plays(limit=7, before_dt=None, before_id=None, title_prefix=None)
+    items, cur= repo.list_plays(limit=7, before_dt=None, before_id=None, title_prefix=None)
     assert len(items) == 7
-    assert h1 == True
+    assert isinstance(cur, str) and cur
     
     last = items[-1]
-    items2, h2 = repo.list_plays(before_dt=last.created_at, before_id=UUID(last.id), title_prefix=None)
+    items2, cur2 = repo.list_plays(before_dt=last.created_at, before_id=UUID(last.id), title_prefix=None)
     assert len(items2) == 5
-    assert h2 == False
-    
+    assert cur2 is None 
 
 def test_list_title_prefix_filter_is_case_insensitive_and_trimmed(repo):
     # Arrange
@@ -65,11 +64,11 @@ def test_list_title_prefix_filter_is_case_insensitive_and_trimmed(repo):
     repo.create_play("Beta", "https://e.com/c.mp4")
     
     # Act
-    items, has_more = repo.list_plays(limit=10, title_prefix="  AlPh  ")
+    items, next_cursor = repo.list_plays(limit=10, title_prefix="  AlPh  ")
     
     # Assert
     assert [p.title for p in items] == ["alpha spain", "Alpha"]
-    assert has_more == False
+    assert next_cursor is None
     
 
 def test_list_handles_nonexistent_cutoff_gracefully(repo):
@@ -79,8 +78,8 @@ def test_list_handles_nonexistent_cutoff_gracefully(repo):
     before_id = UUID("12345678-1234-5678-1234-567812345678")
     
     # Act
-    items, has_more = repo.list_plays(limit=2, before_dt=before_dt, before_id=before_id)
+    items, next_cursor = repo.list_plays(limit=2, before_dt=before_dt, before_id=before_id)
     
     # Assert
     assert len(items) == 0
-    assert has_more is False
+    assert next_cursor is None
