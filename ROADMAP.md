@@ -138,6 +138,8 @@ _Each item is a suggested commit. Keep using the branch naming convention per da
 
 ## Day 15 – Signed URLs (Secure Access)
 
+**Objective:** Signed URLs (Secure Access)
+
 - [ ] ✨ feat(storage): add signed URL generation (time-limited) (D15-1)
 - [ ] ✅ test(storage): expiry honored; invalid keys rejected (D15-2)
 - [ ] ✨ feat(api): `GET /v1/plays/{id}/video:signed` (D15-3)

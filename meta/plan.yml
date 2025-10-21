@@ -1,4 +1,4 @@
-current_day: 14
+current_day: 15
 days:
 - day: 8
   branch: feat/api-list-plays
@@ -101,7 +101,8 @@ days:
   - API: GET /v1/plays/{id}/video:signed
   - Env: key/credential validation
   - 'Docs: security trade-offs and TTL defaults'
-  tech_debt_resolve: []
+  tech_debt_resolve:
+  - TD19
   tech_debt_add: []
 - day: 16
   branch: feat/workers-skeleton
